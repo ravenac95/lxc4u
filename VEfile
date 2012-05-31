@@ -1,0 +1,10 @@
+requirements:
+  - overlay4u
+
+---
+profile: development
+
+requirements:
+  - ipython
+  - nose
+  - fudge

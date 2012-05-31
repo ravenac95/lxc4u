@@ -1,6 +1,8 @@
 lxc4u - Tools for dealing with LXC in ubuntu
 ============================================
 
+Warning! This is still a work in progress.
+
 Provides tools for managing LXC in Ubuntu 12.04 and Ubuntu 12.04 Containers.
 Other containers are not supported (yet?)
 
@@ -11,6 +13,8 @@ Other containers are not supported (yet?)
 
 Possible interface examples
 ---------------------------
+
+Here's what I'd like to be able to do.
 
 Create a container named ``test1``::
     
