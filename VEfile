@@ -5,6 +5,7 @@ requirements:
 profile: development
 
 requirements:
+  - testkit
   - ipython
   - nose
   - fudge

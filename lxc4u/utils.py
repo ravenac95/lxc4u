@@ -1,10 +1,15 @@
-import subprocess
+import subwrap
+from lxc import LXC
 
-def call_command(*args, **kwargs):
-    """A wrapper around subprocess.Popen. 
+class LXCService(object):
+    @classmethod
+    def list_names(cls):
+        """Lists all known LXC names"""
+        response = subwrap.run(['lxc-ls'])
+        output = response.std_out
+        return map(str.strip, output.splitlines())
 
-    At this time this is not at all useful, but it may lead to
-    easier testing later, hence it's inclusion
-    """
-    subprocess.Popen(*args, **kwargs)
-    
+    def create(cls, *args, **kwargs):
+        """Creates an LXC"""
+        container = LXC.create(*args, **kwargs)
+        return container

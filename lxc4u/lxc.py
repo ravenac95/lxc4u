@@ -1,19 +1,10 @@
-from utils import call_command
+from .service import LXCService
 
 class LXC(object):
     @classmethod
     def create(cls, name, template="ubuntu"):
-        call_command(['lxc-create', '-t', template, '-n',
-            name])
+        LXCService.create(name, template=template)
         return cls(name)
 
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, name):
         self.name = name
-
-    def start(self):
-        """Starts the LXC container as a daemon"""
-        call_command(['lxc-start', '-n', self.name, '-d'])
-
-    def stop(self):
-        """Stops the LXC container"""
-        call_command(['lxc-stop', '-n', self.name])
