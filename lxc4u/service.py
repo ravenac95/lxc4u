@@ -21,9 +21,9 @@ class LXCService(object):
     @classmethod
     def lxc_path(cls):
         """Returns the LXC path (default on ubuntu is /var/lib/lxc)"""
-        response = subwrap.run(['lxc-ls -d'])
+        response = subwrap.run(['lxc-ls', '-d'])
         output = response.std_out
-        lxc_dir = output.splitlines()[0]
+        lxc_path = output.splitlines()[0]
         return lxc_path.strip()
     
     @classmethod
