@@ -16,3 +16,8 @@ def start(name):
     lxc_obj = LXCManager.get(name)
     lxc_obj.start()
     return lxc_obj
+
+def stop(name):
+    lxc_obj = LXCManager.get(name)
+    lxc_obj.stop()
+    return lxc_obj

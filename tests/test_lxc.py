@@ -34,7 +34,7 @@ class TestLXC(object):
     def test_start_container(self):
         self.fake_service.expects('start').with_args('name')
         self.fake_service.expects('info').returns({
-            'status': 'STOPPED', 'pid': '-1'})
+            'state': 'STOPPED', 'pid': '-1'})
         self.lxc.start()
 
     @fudge.test
@@ -45,20 +45,20 @@ class TestLXC(object):
     @fudge.test
     def test_get_status(self):
         self.fake_service.expects('info').returns({
-            'status': 'RUNNING', 'pid': '12345'})
+            'state': 'RUNNING', 'pid': '12345'})
         assert self.lxc.status == 'RUNNING'
 
     @fudge.test
     def test_get_pid(self):
         self.fake_service.expects('info').returns({
-            'status': 'RUNNING', 'pid': '12345'})
+            'state': 'RUNNING', 'pid': '12345'})
         assert self.lxc.pid == 12345
 
     @fudge.test
     @raises(LXCAlreadyStarted)
     def test_start_container_that_is_already_running(self):
         self.fake_service.expects('info').returns({
-            'status': 'RUNNING', 'pid': '12345'})
+            'state': 'RUNNING', 'pid': '12345'})
         self.lxc.start()
 
 class TestLXCWithOverlay(object):
