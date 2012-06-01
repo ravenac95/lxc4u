@@ -96,6 +96,9 @@ class LXC(object):
         info = self._service.info(self.name)
         return int(info['pid'])
 
+    def __repr__(self):
+        return '<LXC "%s">' % self.name
+
 class LXCManager(object):
     @classmethod
     def list(cls, service=None):
