@@ -13,7 +13,7 @@ import tempfile
 import shutil
 import os
 from nose.plugins.attrib import attr
-from testkit import random_string
+from testkit import random_string, temp_directory
 from testkit.data import ALPHAS_LOWER
 from .utils import only_as_root
 import lxc4u
@@ -29,7 +29,6 @@ def test_create():
     """Create a new LXC"""
     # WARNING this test assumes that you're using /var/lib/lxc for 
     # lxc containers. If that is not correct please do not run this test
-    random_name = random_string(26, ALPHAS_LOWER)
     # Create a random directory path for the test container
     container_path = tempfile.mkdtemp(dir="/var/lib/lxc")
     # Delete path that was created
@@ -50,3 +49,26 @@ def test_create():
                 shutil.rmtree(container_path)
             else:
                 os.remove(container_path)
+
+@only_as_root
+def test_create_with_overlay():
+    """Create a new LXC with a temp overlay"""
+    random_name = random_string(26, ALPHAS_LOWER)
+    # Create a random directory path for the test container
+    container_path = tempfile.mkdtemp(dir="/var/lib/lxc")
+    # Delete path that was created
+    shutil.rmtree(container_path)
+    # Get random name using temp directory path
+    random_name = os.path.basename(container_path)
+    with temp_directory() as temp_path:
+        try:
+            # FIXME it assumes you have an LXC named base
+            lxc4u.create(random_name, base="base", overlays=[temp_path])
+        finally:
+            if os.path.exists(container_path):
+                if os.path.isdir(container_path):
+                    shutil.rmtree(container_path)
+                else:
+                    os.remove(container_path)
+
+
