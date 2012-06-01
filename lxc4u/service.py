@@ -40,7 +40,7 @@ class LXCService(object):
 
         This cannot start an LXC as a non-daemon. That doesn't make sense.
         """
-        command = ['lxc-start', '-n', name]
+        command = ['lxc-start', '-n', name, '-d']
         subwrap.run(command)
 
     @classmethod
