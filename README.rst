@@ -11,10 +11,8 @@ Other containers are not supported (yet?)
 - Can handle multiple overlayfs layers to run an ephemeral container
 - Can specify a startup command
 
-Possible interface examples
----------------------------
-
-Here's what I'd like to be able to do.
+Mostly working examples
+-----------------------
 
 Create a container named ``test1``::
     
@@ -28,12 +26,28 @@ Create a container named ``test1``::
 Create a container that overlays ``test1``::
     
     import lxc4u
-
-    test1_overlay_lxc = lxc4u.create('test1_overlay', base='test1', 
-                        overlays=['path_to_overlay_dir'])
+    
+    test1_overlay_lxc = lxc4u.create('test1_overlay', base='test1',
+                                    overlays=['overlay_path'])
 
     # Start the container
     test1_overlay_lxc.start()
+
+Create a container with multiple overlays of ``test1``. The right most overlay
+is the upper most overlay directory::
+    
+    import lxc4u
+    
+    test1_overlay_lxc = lxc4u.create('test1_overlay', base='test1',
+                                overlays=['overlay1_path', 'overlay2_path'])
+
+    # Start the container
+    test1_overlay_lxc.start()
+
+Possible interface examples
+---------------------------
+
+These examples have not yet been implemented. Soon!
 
 Starting a container named ``test1``. This assumes lxc is properly configured
 in your system::
