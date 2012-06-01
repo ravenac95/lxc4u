@@ -44,9 +44,6 @@ is the upper most overlay directory::
     # Start the container
     test1_overlay_lxc.start()
 
-Possible interface examples
----------------------------
-
 These examples have not yet been implemented. Soon!
 
 Starting a container named ``test1``. This assumes lxc is properly configured
@@ -60,6 +57,9 @@ in your system::
     # Stop container
     test1_lxc.stop()
     # or lxc4u.stop('test1')
+
+Possible interface examples
+---------------------------
 
 Starting an ephemeral container using test1 as a base::
 
