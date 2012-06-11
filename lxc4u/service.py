@@ -50,6 +50,11 @@ class LXCService(object):
         subwrap.run(command)
 
     @classmethod
+    def destroy(cls, name):
+        command = ['lxc-destroy', '-n', name]
+        subwrap.run(command)
+
+    @classmethod
     def info(cls, name, get_state=True, get_pid=True):
         """Retrieves and parses info about an LXC"""
         # Run lxc-info quietly

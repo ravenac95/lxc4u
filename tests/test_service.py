@@ -34,6 +34,11 @@ def test_service_stop(fake_run):
     LXCService.stop('something')
 
 @fudge.patch('subwrap.run')
+def test_service_destroy(fake_run):
+    fake_run.expects_call()
+    LXCService.destroy('something')
+
+@fudge.patch('subwrap.run')
 def test_service_info(fake_run):
     fake_resp = fake_run.expects_call().returns_fake()
     fake_resp.has_attr(std_out="state:   RUNNING\npid:    12345")
