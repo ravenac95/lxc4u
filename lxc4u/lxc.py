@@ -2,6 +2,7 @@ import os
 import tempfile
 import overlay4u
 from .service import LXCService
+from .overlayutils import OverlayGroup
 
 class LXCAlreadyStarted(Exception):
     def __init__(self, name):
@@ -45,22 +46,7 @@ class LXC(object):
         if not os.path.exists(new_path):
             os.mkdir(new_path)
 
-        # Prime the loop
-        current_lower = base_path
-        # Loop through all but the final overlay
-        for overlay in overlays[:-1]:
-            # Create a temporary directory to handle the mount points for any
-            # intermediate overlays
-            temp_mount_point = tempfile.mkdtemp(dir=overlay_temp_path)
-            # Mount that overlay
-            overlay4u.mount(temp_mount_point, current_lower, overlay)
-            # The new lower directory should be the temporary directory
-            current_lower = temp_mount_point
-        # Get the final overlay location
-        overlay = overlays[-1]
-        # Do the final mount point on the lxc_path using the name provided
-        overlay4u.mount(new_path, current_lower, overlay)
-        # Return the LXC object
+        overlay_group = OverlayGroup.create(new_path, base_path, overlays)
         return cls(name)
     
     @classmethod
@@ -85,6 +71,9 @@ class LXC(object):
     def stop(self):
         """Stop this LXC"""
         self._service.stop(self.name)
+    
+    def destroy(self):
+        self._service.destroy(self.name)
 
     @property
     def status(self):

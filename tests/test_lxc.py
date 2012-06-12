@@ -61,14 +61,19 @@ class TestLXC(object):
             'state': 'RUNNING', 'pid': '12345'})
         self.lxc.start()
 
+    @fudge.test
+    def test_destroy(self):
+        self.fake_service.expects('destroy')
+        self.lxc.destroy()
+
 class TestLXCWithOverlay(object):
     def setup(self):
-        patch_context = fudge.patch('lxc4u.lxc.LXCService', 'overlay4u.mount', 'os.mkdir', 'tempfile.mkdtemp')
+        patch_context = fudge.patch('lxc4u.lxc.LXCService', 
+                'os.mkdir', 'lxc4u.lxc.OverlayGroup')
         context_user = testkit.ContextUser(patch_context)
-        self.fake_service, self.fake_mount, self.fake_mkdir, self.fake_mkdtemp = context_user.enter()
+        self.fake_service, self.fake_mkdir, self.fake_overlay_group_cls = context_user.enter()
         self.fake_service.provides('lxc_path').returns('/tmp/')
         self.fake_mkdir.is_a_stub()
-        self.fake_mkdtemp.expects_call().returns('sometemp_location')
         self.context_user = context_user
 
     def teardown(self):
@@ -76,8 +81,9 @@ class TestLXCWithOverlay(object):
     
     @fudge.test
     def test_with_simple_overlay(self):
-        self.fake_mount.expects_call().with_args('/tmp/test1_overlay', 
-                '/tmp/test1', 'overlay_path')
+        (self.fake_overlay_group_cls.expects('create')
+                .with_args('/tmp/test1_overlay', '/tmp/test1', ['overlay_path'])
+                .returns_fake())
 
         test1_overlay_lxc = LXC.create_with_overlays('test1_overlay',
                 base='test1', overlays=['overlay_path'])
@@ -88,16 +94,16 @@ class TestLXCWithOverlay(object):
     @fudge.test
     def test_with_many_overlays(self):
         """Test with multiple layers of overlay."""
-        (self.fake_mount.expects_call()
-                .with_args('sometemp_location',
-                    '/tmp/test1', 'overlay1_path').next_call()
-                .with_args('/tmp/test1_overlay', 
-                    'sometemp_location', 'overlay2_path'))
+        (self.fake_overlay_group_cls.expects('create')
+                .with_args('/tmp/test1_overlay', '/tmp/test1', 
+                    ['overlay1_path', 'overlay2_path'])
+                .returns_fake())
 
         test1_overlay_lxc = LXC.create_with_overlays('test1_overlay',
                 base='test1', overlays=['overlay1_path', 'overlay2_path'])
         message = "test1_lxc_overlay isn't an LXC instance"
         assert isinstance(test1_overlay_lxc, LXC) == True, message
+
 
 @fudge.patch('lxc4u.lxc.LXCService')
 def test_lxc_manager_list(fake_service):
