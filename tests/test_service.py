@@ -59,3 +59,11 @@ def do_service_info(info_str, expected, fake_run):
     fake_resp.has_attr(std_out=info_str)
     info = LXCService.info("something")
     assert info == expected
+
+@fudge.patch('subwrap.run')
+def test_service_lxc_path(fake_run):
+    fake_resp = fake_run.expects_call().returns_fake()
+    fake_resp.has_attr(std_out='/var/lib/lxc\n')
+    assert LXCService.lxc_path() == '/var/lib/lxc'
+    assert LXCService.lxc_path('hello') == '/var/lib/lxc/hello'
+

@@ -83,6 +83,9 @@ class LXC(object):
         info = self._service.info(self.name)
         return int(info['pid'])
 
+    def path(self, *join_paths):
+        return self._service.lxc_path(self.name, *join_paths)
+
     def __repr__(self):
         return '<LXC "%s">' % self.name
 

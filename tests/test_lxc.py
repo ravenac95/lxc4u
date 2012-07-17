@@ -55,6 +55,13 @@ class TestLXC(object):
         assert self.lxc.pid == 12345
 
     @fudge.test
+    def test_path(self):
+        fake_resp = self.fake_service.expects('lxc_path').with_args('name', 'hello').returns_fake()
+        path = self.lxc.path('hello')
+        assert path == fake_resp
+
+
+    @fudge.test
     @raises(LXCAlreadyStarted)
     def test_start_container_that_is_already_running(self):
         self.fake_service.expects('info').returns({

@@ -4,6 +4,7 @@ lxc4u.service
 
 This contains the low level access layer to any of the lxc command line tools.
 """
+import os
 import subwrap
 
 def split_info_line(line):
@@ -19,12 +20,13 @@ class LXCService(object):
         return map(str.strip, output.splitlines())
 
     @classmethod
-    def lxc_path(cls):
+    def lxc_path(cls, *join_paths):
         """Returns the LXC path (default on ubuntu is /var/lib/lxc)"""
         response = subwrap.run(['lxc-ls', '-d'])
         output = response.std_out
         lxc_path = output.splitlines()[0]
-        return lxc_path.strip()
+        lxc_path = lxc_path.strip()
+        return os.path.join(lxc_path, *join_paths)
     
     @classmethod
     def create(cls, name, template=None):
