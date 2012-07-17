@@ -1,6 +1,4 @@
 import os
-import tempfile
-import overlay4u
 from .service import LXCService
 from .overlayutils import OverlayGroup
 
