@@ -1,5 +1,5 @@
 from nose.tools import raises
-from mock import Mock, patch
+from mock import Mock, patch, ANY
 import fudge
 from fudge.inspector import arg
 import testkit
@@ -123,15 +123,16 @@ class TestLXCWithOverlay(object):
         assert isinstance(test1_overlay_lxc, LXC) == True, message
 
 
-@fudge.patch('lxc4u.lxc.LXCService')
-def test_lxc_manager_list(fake_service):
-    fake_service.expects('list_names').returns(['lxc1', 'lxc2'])
+@patch('lxc4u.lxc.LXCService')
+def test_lxc_manager_list(mock_service):
+    mock_service.list_names.return_value = ['lxc1', 'lxc2']
     lxc_list = LXCManager.list()
     for lxc in lxc_list:
         assert isinstance(lxc, LXC)
+    assert len(lxc_list) == 2
 
 
-@fudge.patch('lxc4u.lxc.LXC')
-def test_lxc_manager_get(fake_lxc_class):
-    fake_lxc_class.expects('from_name').with_args('name', service=arg.any()).returns('LXC')
-    assert LXCManager.get('name') == 'LXC'
+@patch('lxc4u.lxc.LXC')
+def test_lxc_manager_get(mock_lxc_cls):
+    assert LXCManager.get('name') == mock_lxc_cls.from_name.return_value
+    mock_lxc_cls.from_name.assert_called_with('name', service=ANY)
