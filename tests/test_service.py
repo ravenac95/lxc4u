@@ -67,7 +67,7 @@ def do_service_info(info_str, expected, mock_run):
 
 @patch('subwrap.run')
 def test_service_lxc_path(mock_run):
-    mock_resp = mock_run.returnG_value
+    mock_resp = mock_run.return_value
     mock_resp.std_out = '/var/lib/lxc\n'
 
     assert LXCService.lxc_path() == '/var/lib/lxc'
