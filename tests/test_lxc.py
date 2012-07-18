@@ -1,24 +1,32 @@
 from nose.tools import raises
-from mock import Mock
+from mock import Mock, patch
 import fudge
 from fudge.inspector import arg
 import testkit
 from lxc4u.lxc import *
 
-@fudge.patch('lxc4u.lxc.LXCService')
-def test_create_a_container(fake_service):
-    fake_service.expects('create').with_args('test1', template='ubuntu')
+@patch('lxc4u.lxc.LXCService')
+def test_create_a_container(mock_service):
     test1_lxc = LXC.create('test1')
 
+    # Assertions
     message = "test1_lxc isn't an LXC instance"
     assert isinstance(test1_lxc, LXC) == True, message
+    mock_service.create.assert_called_with('test1', template='ubuntu')
 
-@fudge.patch('lxc4u.lxc.LXCService')
-def test_container_from_name(fake_service):
-    fake_service.expects('list_names').returns(['name'])
+@patch('lxc4u.lxc.LXCService')
+def test_container_from_name(mock_service):
+    # Setup Return values
+    mock_service.list_names.return_value = ['name']
+
+    # Run Test
     test1_lxc = LXC.from_name('name')
+    
+    # Assertions
     message = "test1_lxc isn't an LXC instance"
     assert isinstance(test1_lxc, LXC) == True, message
+    mock_service.list_names.assert_called_with()
+    
 
 @raises(LXCDoesNotExist)
 @fudge.patch('lxc4u.lxc.LXCService')
