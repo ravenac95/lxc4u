@@ -1,52 +1,61 @@
-import fudge
-import testkit
+from mock import Mock, patch, call
 from nose.tools import raises
 from lxc4u.overlayutils import *
 
 class TestCreatingOverlayGroup(object):
     def setup(self):
-        patch_context = fudge.patch('lxc4u.lxc.LXCService', 'overlay4u.mount',
-                'os.mkdir', 'tempfile.mkdtemp')
-        context_user = testkit.ContextUser(patch_context)
-        self.fake_service, self.fake_mount, self.fake_mkdir, self.fake_mkdtemp = context_user.enter()
-        self.fake_service.provides('lxc_path').returns('/tmp/')
-        self.fake_mkdir.is_a_stub()
-        self.fake_mkdtemp.is_callable().returns('sometemp_location')
-        self.context_user = context_user
+        self.lxc_service_patch = patch('lxc4u.lxc.LXCService')
+        self.mkdir_patch = patch('os.mkdir')
+        self.mount_patch = patch('overlay4u.mount')
+        self.mkdtemp_patch = patch('tempfile.mkdtemp')
+
+        self.mock_service = self.lxc_service_patch.start()
+        self.mock_mkdir = self.mkdir_patch.start()
+        self.mock_mount = self.mount_patch.start()
+        self.mock_mkdtemp = self.mkdtemp_patch.start()
+
+        self.mock_service.lxc_path.return_value = '/tmp/'
+        self.mock_mkdtemp.return_value = 'sometemp_location'
+        
 
     def teardown(self):
-        self.context_user.exit()
-
-    @fudge.test
+        self.lxc_service_patch.stop()
+        self.mkdir_patch.stop()
+        self.mount_patch.stop()
+        self.mkdtemp_patch.stop()
+        
     def test_create_simple_group(self):
-        self.fake_mount.expects_call().with_args('/point', '/low_dir', 'overlay_path')
+        OverlayGroup.create('/point', '/low_dir', ['overlay_path'])
 
-        group = OverlayGroup.create('/point', '/low_dir', ['overlay_path'])
+        self.mock_mount.assert_called_with('/point', '/low_dir', 'overlay_path')
 
 
-    @fudge.test
     def test_create_group_with_multiple_overlays(self):
-        (self.fake_mount.expects_call()
-                .with_args('sometemp_location',
-                    '/low_dir', 'overlay1_path').next_call()
-                .with_args('/point', 
-                    'sometemp_location', 'overlay2_path'))
-        group = OverlayGroup.create('/point', '/low_dir',
+        OverlayGroup.create('/point', '/low_dir',
                 ['overlay1_path', 'overlay2_path'])
 
+        calls = [
+            call('sometemp_location', '/low_dir', 'overlay1_path'),
+            call('/point', 'sometemp_location', 'overlay2_path'),
+        ]
+        self.mock_mount.assert_has_calls(calls)
+
     @raises(TypeError)
-    @fudge.test
     def test_create_group_fails_no_overlays(self):
         OverlayGroup.create('/point', '/low_dir', [])
 
 def test_overlay_group_unmount():
-    fake_ov1 = fudge.Fake()
-    fake_ov2 = fudge.Fake()
-    fake_ov1.expects('unmount')
-    fake_ov2.expects('unmount')
+    # Setup Mocks
+    mock_ov1 = Mock()
+    mock_ov2 = Mock()
 
     test_group = OverlayGroup('/end', '/start', [
-        fake_ov1,
-        fake_ov2,
+        mock_ov1,
+        mock_ov2,
     ])
+
     test_group.unmount()
+    
+    # Assertions
+    mock_ov1.unmount.assert_called_with()
+    mock_ov2.unmount.assert_called_with()
