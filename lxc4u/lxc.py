@@ -45,7 +45,7 @@ class LXC(object):
             os.mkdir(new_path)
 
         overlay_group = OverlayGroup.create(new_path, base_path, overlays)
-        return cls(name)
+        return cls(name, service)
     
     @classmethod
     def from_name(cls, name, service=None):
@@ -54,9 +54,9 @@ class LXC(object):
         service = service or LXCService
         if not name in service.list_names():
             raise LXCDoesNotExist(name)
-        return cls(name, service=service)
+        return cls(name, service)
 
-    def __init__(self, name, service=None):
+    def __init__(self, name, service):
         self.name = name
         self._service = service
 
