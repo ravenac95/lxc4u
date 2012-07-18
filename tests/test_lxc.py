@@ -1,8 +1,5 @@
 from nose.tools import raises
 from mock import Mock, patch, ANY
-import fudge
-from fudge.inspector import arg
-import testkit
 from lxc4u.lxc import *
 
 @patch('lxc4u.lxc.LXCService')
