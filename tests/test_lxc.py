@@ -84,39 +84,41 @@ class TestLXC(object):
 
 class TestLXCWithOverlay(object):
     def setup(self):
-        patch_context = fudge.patch('lxc4u.lxc.LXCService', 
-                'os.mkdir', 'lxc4u.lxc.OverlayGroup')
-        context_user = testkit.ContextUser(patch_context)
-        self.fake_service, self.fake_mkdir, self.fake_overlay_group_cls = context_user.enter()
-        self.fake_service.provides('lxc_path').returns('/tmp/')
-        self.fake_mkdir.is_a_stub()
-        self.context_user = context_user
+        self.lxc_service_patch = patch('lxc4u.lxc.LXCService')
+        self.mkdir_patch = patch('os.mkdir')
+        self.overlay_group_patch = patch('lxc4u.lxc.OverlayGroup')
+
+        self.mock_service = self.lxc_service_patch.start()
+        self.mock_mkdir = self.mkdir_patch.start()
+        self.mock_overlay_group_cls = self.overlay_group_patch.start()
+
+        self.mock_service.lxc_path.return_value = '/tmp/'
 
     def teardown(self):
-        self.context_user.exit()
+        self.lxc_service_patch.stop()
+        self.mkdir_patch.stop()
+        self.overlay_group_patch.stop()
     
-    @fudge.test
     def test_with_simple_overlay(self):
-        (self.fake_overlay_group_cls.expects('create')
-                .with_args('/tmp/test1_overlay', '/tmp/test1', ['overlay_path'])
-                .returns_fake())
-
         test1_overlay_lxc = LXC.create_with_overlays('test1_overlay',
                 base='test1', overlays=['overlay_path'])
-    
+
+        # Assertions
+        self.mock_overlay_group_cls.create.assert_called_with('/tmp/test1_overlay', '/tmp/test1',
+                ['overlay_path'])
+
         message = "test1_lxc_overlay isn't an LXC instance"
         assert isinstance(test1_overlay_lxc, LXC) == True, message
 
-    @fudge.test
     def test_with_many_overlays(self):
         """Test with multiple layers of overlay."""
-        (self.fake_overlay_group_cls.expects('create')
-                .with_args('/tmp/test1_overlay', '/tmp/test1', 
-                    ['overlay1_path', 'overlay2_path'])
-                .returns_fake())
-
         test1_overlay_lxc = LXC.create_with_overlays('test1_overlay',
                 base='test1', overlays=['overlay1_path', 'overlay2_path'])
+        
+        # Assertions
+        self.mock_overlay_group_cls.create.assert_called_with('/tmp/test1_overlay', '/tmp/test1',
+                ['overlay1_path', 'overlay2_path'])
+
         message = "test1_lxc_overlay isn't an LXC instance"
         assert isinstance(test1_overlay_lxc, LXC) == True, message
 
@@ -127,6 +129,7 @@ def test_lxc_manager_list(fake_service):
     lxc_list = LXCManager.list()
     for lxc in lxc_list:
         assert isinstance(lxc, LXC)
+
 
 @fudge.patch('lxc4u.lxc.LXC')
 def test_lxc_manager_get(fake_lxc_class):
