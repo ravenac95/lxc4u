@@ -8,5 +8,4 @@ requirements:
   - testkit
   - ipython
   - nose
-  - fudge
   - mock
