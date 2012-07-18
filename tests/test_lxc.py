@@ -29,58 +29,58 @@ def test_container_from_name(mock_service):
     
 
 @raises(LXCDoesNotExist)
-@fudge.patch('lxc4u.lxc.LXCService')
-def test_container_from_name_does_not_exist(fake_service):
-    fake_service.expects('list_names').returns([])
+@patch('lxc4u.lxc.LXCService')
+def test_container_from_name_does_not_exist(mock_service):
+    mock_service.list_names.return_value = []
     LXC.from_name('name')
 
 class TestLXC(object):
     def setup(self):
-        self.fake_service = fudge.Fake('LXCService')
-        self.lxc = LXC('name', service=self.fake_service)
+        self.mock_service = Mock()
+        self.lxc = LXC('name', service=self.mock_service)
 
-    @fudge.test
     def test_start_container(self):
-        self.fake_service.expects('start').with_args('name')
-        self.fake_service.expects('info').returns({
-            'state': 'STOPPED', 'pid': '-1'})
+        # Setup Return Values
+        self.mock_service.info.return_value = dict(state='STOPPED',
+                pid='-1')
+
+        # Run test
         self.lxc.start()
 
-    @fudge.test
+        # Assertions
+        self.mock_service.start.assert_called_with('name')
+
     def test_stop_container(self):
-        self.fake_service.expects('stop').with_args('name')
         self.lxc.stop()
 
-    @fudge.test
+        # Assertions
+        self.mock_service.stop.assert_called_with('name')
+
     def test_get_status(self):
-        self.fake_service.expects('info').returns({
-            'state': 'RUNNING', 'pid': '12345'})
+        self.mock_service.info.return_value = dict(state='RUNNING', 
+                pid='12345')
         assert self.lxc.status == 'RUNNING'
 
-    @fudge.test
     def test_get_pid(self):
-        self.fake_service.expects('info').returns({
-            'state': 'RUNNING', 'pid': '12345'})
+        self.mock_service.info.return_value = dict(state='RUNNING', 
+                pid='12345')
         assert self.lxc.pid == 12345
 
-    @fudge.test
     def test_path(self):
-        fake_resp = self.fake_service.expects('lxc_path').with_args('name', 'hello').returns_fake()
         path = self.lxc.path('hello')
-        assert path == fake_resp
+        assert path == self.mock_service.lxc_path.return_value
+        self.mock_service.lxc_path.assert_called_with('name', 'hello')
 
 
-    @fudge.test
     @raises(LXCAlreadyStarted)
     def test_start_container_that_is_already_running(self):
-        self.fake_service.expects('info').returns({
-            'state': 'RUNNING', 'pid': '12345'})
+        self.mock_service.info.return_value = dict(state='RUNNING', 
+                pid='12345')
         self.lxc.start()
 
-    @fudge.test
     def test_destroy(self):
-        self.fake_service.expects('destroy')
         self.lxc.destroy()
+        self.mock_service.destroy.assert_called_with('name')
 
 class TestLXCWithOverlay(object):
     def setup(self):
