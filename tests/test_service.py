@@ -46,19 +46,7 @@ def test_service_destroy(mock_run):
     LXCService.destroy('something')
     mock_run.assert_any_calls()
 
-@patch('subwrap.run')
-def test_service_info(mock_run):
-    # Setup Mocks
-    mock_resp = mock_run.return_value
-    mock_resp.std_out = "state:   RUNNING\npid:    12345"
-
-    # Run Test
-    info = LXCService.info('something')
-
-    # Assertions
-    assert info == {"state": "RUNNING", "pid": "12345"}
-
-def test_many_service_info():
+def test_service_info():
     tests = [
         ("state:   RUNNING\npid:    12345", {"state": "RUNNING", "pid": "12345"}),
         ("state:   STOPPED\npid:    -1", {"state": "STOPPED", "pid": "-1"}),
@@ -80,7 +68,7 @@ def do_service_info(info_str, expected, mock_run):
 
 @patch('subwrap.run')
 def test_service_lxc_path(mock_run):
-    mock_resp = mock_run.return_value
+    mock_resp = mock_run.returnG_value
     mock_resp.std_out = '/var/lib/lxc\n'
 
     assert LXCService.lxc_path() == '/var/lib/lxc'
