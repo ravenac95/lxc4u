@@ -25,6 +25,7 @@ def read_file_data(filepath):
     return data
 
 @only_as_root
+@attr('large')
 def test_create():
     """Create a new LXC"""
     # WARNING this test assumes that you're using /var/lib/lxc for 
@@ -51,6 +52,7 @@ def test_create():
                 os.remove(container_path)
 
 #@only_as_root
+#@attr('large')
 #def test_create_with_overlay():
 #    """Create a new LXC with a temp overlay"""
 #    random_name = random_string(26, ALPHAS_LOWER)
@@ -70,5 +72,3 @@ def test_create():
 #                    shutil.rmtree(container_path)
 #                else:
 #                    os.remove(container_path)
-#
-

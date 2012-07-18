@@ -9,3 +9,4 @@ requirements:
   - ipython
   - nose
   - fudge
+  - mock

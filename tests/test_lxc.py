@@ -1,4 +1,5 @@
 from nose.tools import raises
+from mock import Mock
 import fudge
 from fudge.inspector import arg
 import testkit
