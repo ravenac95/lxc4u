@@ -5,44 +5,49 @@ tests.test_main
 Test the main interface
 """
 import lxc4u
-import fudge
-from fudge.inspector import arg
+from mock import patch, ANY
 
-@fudge.patch('lxc4u.LXC')
-def test_create(fake_lxc_class):
+@patch('lxc4u.LXC')
+def test_create(mock_lxc_cls):
     """Simple test create"""
-    fake_lxc_class.expects('create').with_args('name', service=arg.any()).returns("test")
-    assert lxc4u.create('name') == 'test'
+    assert lxc4u.create('name') == mock_lxc_cls.create.return_value
+    mock_lxc_cls.create.assert_called_with('name', service=ANY)
 
-@fudge.patch('lxc4u.LXC')
-def test_create_with_overlays(fake_lxc_class):
+@patch('lxc4u.LXC')
+def test_create_with_overlays(mock_lxc_cls):
     """Simple test create"""
-    fake_lxc_class.expects('create_with_overlays').with_args('name', 'test1', 
-            ['overlay'], service=arg.any()).returns("test")
-    assert lxc4u.create('name', base='test1', overlays=['overlay'])
+    create_obj = mock_lxc_cls.create_with_overlays.return_value
+    assert lxc4u.create('name', base='test1', 
+            overlays=['overlay']) == create_obj
+    mock_lxc_cls.create_with_overlays.assert_called_with('name', 'test1', 
+            ['overlay'], service=ANY)
 
-@fudge.patch('lxc4u.LXCManager')
-def test_get(fake_manager):
+@patch('lxc4u.LXCManager')
+def test_get(mock_manager):
     """Get an LXC container"""
-    fake_manager.expects('get').with_args('name').returns('LXC')
-    assert lxc4u.get('name') == 'LXC'
+    assert lxc4u.get('name') == mock_manager.get.return_value
+    mock_manager.get.assert_called_with('name')
 
-@fudge.patch('lxc4u.LXCManager')
-def test_list(fake_manager):
+@patch('lxc4u.LXCManager')
+def test_list(mock_manager):
     """List LXC Containers"""
-    fake_manager.expects('list').returns('LXC_LIST')
-    assert lxc4u.list() == 'LXC_LIST'
+    assert lxc4u.list() == mock_manager.list.return_value
 
-@fudge.patch('lxc4u.LXCManager')
-def test_start(fake_manager):
+@patch('lxc4u.LXCManager')
+def test_start(mock_manager):
     """Start an LXC and return the object"""
-    fake_lxc = fake_manager.expects('get').with_args('name').returns_fake()
-    fake_lxc.expects('start')
-    assert lxc4u.start('name')
+    # Get mock_lxc from mock_manager
+    mock_lxc = mock_manager.get.return_value
 
-@fudge.patch('lxc4u.LXCManager')
-def test_stop(fake_manager):
+    assert lxc4u.start('name') == mock_lxc
+    mock_manager.get.assert_called_with('name')
+    mock_lxc.start.assert_called_with()
+
+@patch('lxc4u.LXCManager')
+def test_stop(mock_manager):
     """Stop an LXC and return the object"""
-    fake_lxc = fake_manager.expects('get').with_args('name').returns_fake()
-    fake_lxc.expects('stop')
-    assert lxc4u.stop('name')
+    mock_lxc = mock_manager.get.return_value
+
+    assert lxc4u.stop('name') == mock_lxc
+    mock_manager.get.assert_called_with('name')
+    mock_lxc.stop.assert_called_with()
