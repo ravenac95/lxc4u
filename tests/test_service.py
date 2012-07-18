@@ -1,4 +1,3 @@
-import fudge
 from mock import patch
 from lxc4u.service import LXCService
 
