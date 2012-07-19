@@ -25,13 +25,16 @@ class TestCreatingOverlayGroup(object):
         self.mkdtemp_patch.stop()
 
     def test_create_simple_group(self):
-        OverlayGroup.create('/point', '/low_dir', ['overlay_path'])
+        overlay_group = OverlayGroup.create('/point', '/low_dir',
+                ['overlay_path'])
 
         self.mock_mount.assert_called_with('/point', '/low_dir',
                 'overlay_path')
+        # Assert that the overlays are tracked correctly
+        assert len(overlay_group) == 1
 
     def test_create_group_with_multiple_overlays(self):
-        OverlayGroup.create('/point', '/low_dir',
+        overlay_group = OverlayGroup.create('/point', '/low_dir',
                 ['overlay1_path', 'overlay2_path'])
 
         calls = [
@@ -39,6 +42,15 @@ class TestCreatingOverlayGroup(object):
             call('/point', 'sometemp_location', 'overlay2_path'),
         ]
         self.mock_mount.assert_has_calls(calls)
+        # Assert that the overlays are tracked correctly
+        assert len(overlay_group) == 2
+
+    def test_create_group_and_iterate(self):
+        overlay_group = OverlayGroup.create('/point', '/low_dir',
+                ['overlay1_path', 'overlay2_path'])
+
+        for overlay in overlay_group:
+            assert overlay == self.mock_mount.return_value
 
     @raises(TypeError)
     def test_create_group_fails_no_overlays(self):

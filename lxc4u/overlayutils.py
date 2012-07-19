@@ -1,6 +1,7 @@
 import tempfile
 import overlay4u
 
+
 class OverlayGroup(object):
     @classmethod
     def create(cls, end_dir, start_dir, overlays, overlay_temp_path=None):
@@ -24,7 +25,8 @@ class OverlayGroup(object):
         # Get the final overlay location
         overlay = overlays[-1]
         # Do the final mount point on the lxc_path using the name provided
-        overlay4u.mount(end_dir, current_lower, overlay)
+        overlay_obj = overlay4u.mount(end_dir, current_lower, overlay)
+        overlay_objects.append(overlay_obj)
         return cls(end_dir, start_dir, overlay_objects)
 
     def __init__(self, end_dir, start_dir, overlays):
@@ -42,3 +44,9 @@ class OverlayGroup(object):
         for overlay in self.overlays:
             mount_points.append(overlay.mount_point)
         return mount_points
+
+    def __iter__(self):
+        return iter(self.overlays)
+
+    def __len__(self):
+        return len(self.overlays)
