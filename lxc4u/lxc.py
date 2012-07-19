@@ -17,38 +17,44 @@ class LXCDoesNotExist(Exception):
         super(LXCDoesNotExist, self).__init__(message)
 
 
+class LXCHasNoMeta(Exception):
+    def __init__(self, name):
+        message = 'LXC named "%s" has no BoundLXCMeta' % name
+        super(LXCHasNoMeta, self).__init__(message)
+
+
 def create_lxc(name, template='ubuntu', service=None):
     """Factory method for the generic LXC"""
     service = service or LXCService
     service.create(name, template=template)
     meta = LXCMeta(initial=dict(type='LXC'))
-    lxc = LXC.with_meta(name, meta, service)
+    lxc = LXC.with_meta(name, service, meta)
     return lxc
 
 
 class LXC(object):
     """The standard LXC"""
     @classmethod
-    def with_meta(cls, name, meta, service):
+    def with_meta(cls, name, service, meta, save=False):
         lxc = cls(name, service)
-        lxc.bind_meta(meta)
+        lxc.bind_meta(meta, save=save)
         return lxc
 
     def __init__(self, name, service):
         self.name = name
         self._service = service
-        self
+        self._meta = None
 
     def start(self):
         """Start this LXC"""
         if self.status == 'RUNNING':
             raise LXCAlreadyStarted(self.name)
         self._service.start(self.name)
-    
+
     def stop(self):
         """Stop this LXC"""
         self._service.stop(self.name)
-    
+
     def destroy(self):
         self._service.destroy(self.name)
 
@@ -56,7 +62,7 @@ class LXC(object):
     def status(self):
         info = self._service.info(self.name)
         return info['state']
-    
+
     @property
     def pid(self):
         info = self._service.info(self.name)
@@ -68,14 +74,24 @@ class LXC(object):
     def __repr__(self):
         return '<%s "%s">' % (self.__class__.__name__, self.name)
 
-    def bind_meta(self, meta):
-        self._meta = meta.bind(self)
+    @property
+    def meta(self):
+        meta = self._meta
+        if not meta:
+            raise LXCHasNoMeta(self.name)
+        return meta
+
+    def bind_meta(self, meta, save=False):
+        if save:
+            self._meta = meta.bind_and_save(self)
+        else:
+            self._meta = meta.bind(self)
 
 
 def create_lxc_with_overlays(name, base, overlays, overlay_temp_path=None,
         service=None):
-    """Creates an LXC using overlays. 
-    
+    """Creates an LXC using overlays.
+
     This is a fast process in comparison to LXC.create because it does not
     involve any real copying of data.
     """
@@ -96,34 +112,39 @@ def create_lxc_with_overlays(name, base, overlays, overlay_temp_path=None,
         os.mkdir(new_path)
 
     overlay_group = OverlayGroup.create(new_path, base_path, overlays)
-    meta = LXCMeta(initial=overlay_group.metadata())
-    return LXCWithOverlays.with_meta(name, service, meta, overlay_group)
+    initial_metadata = dict(type='LXCWithOverlays',
+            overlay_group=overlay_group.metadata())
+    meta = LXCMeta(initial=initial_metadata)
+    return LXCWithOverlays.with_meta(name, service, meta, overlay_group,
+            save=True)
+
 
 class UnmanagedLXCError(Exception):
     pass
 
+
 class UnmanagedLXC(LXC):
     """An LXC that was created without lxc4u metadata"""
     def destroy(self, force=False):
-        """UnmanagedLXC Destructor. 
-        
+        """UnmanagedLXC Destructor.
+
         It requires force to be true in order to work. Otherwise it throws an
         error.
         """
         if force:
             super(UnmanagedLXC, self).destroy()
         else:
-            raise UnmanagedLXCError('Destroying an unmanaged LXC might not work. '
-                'To continue please call this method with force=True')
+            raise UnmanagedLXCError('Destroying an unmanaged LXC might not '
+                'work. To continue please call this method with force=True')
 
 
 class LXCWithOverlays(LXC):
     """An LXC that has an overlay group"""
     @classmethod
-    def with_meta(cls, name, meta, service, overlay_group):
+    def with_meta(cls, name, service, meta, overlay_group, save=False):
         lxc = cls(name, service, overlay_group)
-        lxc.bind_meta(meta)
-        return lxc 
+        lxc.bind_meta(meta, save=save)
+        return lxc
 
     def __init__(self, name, service, overlay_group):
         self._overlay_group = overlay_group
