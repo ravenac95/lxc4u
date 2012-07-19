@@ -16,14 +16,14 @@ class TestCreatingOverlayGroup(object):
 
         self.mock_service.lxc_path.return_value = '/tmp/'
         self.mock_mkdtemp.return_value = 'sometemp_location'
-        
+
 
     def teardown(self):
         self.lxc_service_patch.stop()
         self.mkdir_patch.stop()
         self.mount_patch.stop()
         self.mkdtemp_patch.stop()
-        
+
     def test_create_simple_group(self):
         OverlayGroup.create('/point', '/low_dir', ['overlay_path'])
 
@@ -44,18 +44,19 @@ class TestCreatingOverlayGroup(object):
     def test_create_group_fails_no_overlays(self):
         OverlayGroup.create('/point', '/low_dir', [])
 
-def test_overlay_group_unmount():
-    # Setup Mocks
-    mock_ov1 = Mock()
-    mock_ov2 = Mock()
 
-    test_group = OverlayGroup('/end', '/start', [
-        mock_ov1,
-        mock_ov2,
-    ])
+class TestOverlayGroup(object):
+    def setup(self):
+        self.mock_ov1 = Mock(name='overlay1')
+        self.mock_ov2 = Mock(name='overlay2')
 
-    test_group.unmount()
-    
-    # Assertions
-    mock_ov1.unmount.assert_called_with()
-    mock_ov2.unmount.assert_called_with()
+        self.group = OverlayGroup('/end', '/start', [
+            self.mock_ov1,
+            self.mock_ov2
+        ])
+
+    def test_unmount(self):
+        self.group.unmount()
+
+        self.mock_ov1.unmount.assert_called_with()
+        self.mock_ov2.unmount.assert_called_with()
