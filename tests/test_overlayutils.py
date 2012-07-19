@@ -2,6 +2,7 @@ from mock import Mock, patch, call
 from nose.tools import raises
 from lxc4u.overlayutils import *
 
+
 class TestCreatingOverlayGroup(object):
     def setup(self):
         self.lxc_service_patch = patch('lxc4u.lxc.LXCService')
@@ -17,7 +18,6 @@ class TestCreatingOverlayGroup(object):
         self.mock_service.lxc_path.return_value = '/tmp/'
         self.mock_mkdtemp.return_value = 'sometemp_location'
 
-
     def teardown(self):
         self.lxc_service_patch.stop()
         self.mkdir_patch.stop()
@@ -27,8 +27,8 @@ class TestCreatingOverlayGroup(object):
     def test_create_simple_group(self):
         OverlayGroup.create('/point', '/low_dir', ['overlay_path'])
 
-        self.mock_mount.assert_called_with('/point', '/low_dir', 'overlay_path')
-
+        self.mock_mount.assert_called_with('/point', '/low_dir',
+                'overlay_path')
 
     def test_create_group_with_multiple_overlays(self):
         OverlayGroup.create('/point', '/low_dir',
@@ -60,3 +60,9 @@ class TestOverlayGroup(object):
 
         self.mock_ov1.unmount.assert_called_with()
         self.mock_ov2.unmount.assert_called_with()
+
+    def test_metadata(self):
+        metadata = self.group.metadata()
+
+        assert metadata == [self.mock_ov1.mount_point,
+                self.mock_ov2.mount_point]
