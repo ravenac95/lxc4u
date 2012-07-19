@@ -22,7 +22,7 @@ class LXCMeta(object):
         self._metadata[key] = value
 
     def as_dict(self):
-        return self._metadata
+        return self._metadata.copy()
 
     def bind(self, lxc):
         """Bind to an LXC"""
@@ -60,3 +60,6 @@ class BoundLXCMeta(object):
 
         meta_file.write(json_string)
         meta_file.close()
+
+    def as_dict(self):
+        return self._meta.as_dict()
