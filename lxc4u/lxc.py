@@ -1,64 +1,43 @@
 import os
+import shutil
 from .service import LXCService
 from .overlayutils import OverlayGroup
+from .meta import LXCMeta
+
 
 class LXCAlreadyStarted(Exception):
     def __init__(self, name):
         message = 'LXC named "%s" is already running' % name
         super(LXCAlreadyStarted, self).__init__(message)
 
+
 class LXCDoesNotExist(Exception):
     def __init__(self, name):
         message = 'LXC named "%s" does not exist' % name
         super(LXCDoesNotExist, self).__init__(message)
 
+
+def create_lxc(name, template='ubuntu', service=None):
+    """Factory method for the generic LXC"""
+    service = service or LXCService
+    service.create(name, template=template)
+    meta = LXCMeta(initial=dict(type='LXC'))
+    lxc = LXC.with_meta(name, meta, service)
+    return lxc
+
+
 class LXC(object):
+    """The standard LXC"""
     @classmethod
-    def create(cls, name, template="ubuntu", service=None):
-        """Create a brand new LXC"""
-        service = service or LXCService
-        service.create(name, template=template)
-        return cls(name, service=service)
-
-    @classmethod
-    def create_with_overlays(cls, name, base, overlays, overlay_temp_path=None,
-            service=None): 
-        """Creates an LXC using overlays. 
-        
-        This is a fast process in comparison to LXC.create because it does not
-        involve any real copying of data.
-        """
-        service = service or LXCService
-        # Check that overlays has content
-        if not overlays:
-            raise TypeError("Argument 'overlays' must have at least one item")
-
-        # Get the system's LXC path
-        lxc_path = service.lxc_path()
-        # Calculate base LXC's path
-        base_path = os.path.join(lxc_path, base)
-        # Calculate the new LXC's path
-        new_path = os.path.join(lxc_path, name)
-
-        # Create the new directory if it doesn't exist
-        if not os.path.exists(new_path):
-            os.mkdir(new_path)
-
-        overlay_group = OverlayGroup.create(new_path, base_path, overlays)
-        return cls(name, service)
-    
-    @classmethod
-    def from_name(cls, name, service=None):
-        # Seems redundant now, but I prefer this over calling the constructor
-        # directly. This could improve later
-        service = service or LXCService
-        if not name in service.list_names():
-            raise LXCDoesNotExist(name)
-        return cls(name, service)
+    def with_meta(cls, name, meta, service):
+        lxc = cls(name, service)
+        lxc.bind_meta(meta)
+        return lxc
 
     def __init__(self, name, service):
         self.name = name
         self._service = service
+        self
 
     def start(self):
         """Start this LXC"""
@@ -87,7 +66,74 @@ class LXC(object):
         return self._service.lxc_path(self.name, *join_paths)
 
     def __repr__(self):
-        return '<LXC "%s">' % self.name
+        return '<%s "%s">' % (self.__class__.__name__, self.name)
+
+    def bind_meta(self, meta):
+        self._meta = meta.bind(self)
+
+
+def create_lxc_with_overlays(name, base, overlays, overlay_temp_path=None,
+        service=None):
+    """Creates an LXC using overlays. 
+    
+    This is a fast process in comparison to LXC.create because it does not
+    involve any real copying of data.
+    """
+    service = service or LXCService
+    # Check that overlays has content
+    if not overlays:
+        raise TypeError("Argument 'overlays' must have at least one item")
+
+    # Get the system's LXC path
+    lxc_path = service.lxc_path()
+    # Calculate base LXC's path
+    base_path = os.path.join(lxc_path, base)
+    # Calculate the new LXC's path
+    new_path = os.path.join(lxc_path, name)
+
+    # Create the new directory if it doesn't exist
+    if not os.path.exists(new_path):
+        os.mkdir(new_path)
+
+    overlay_group = OverlayGroup.create(new_path, base_path, overlays)
+    meta = LXCMeta(initial=overlay_group.metadata())
+    return LXCWithOverlays.with_meta(name, service, meta, overlay_group)
+
+class UnmanagedLXCError(Exception):
+    pass
+
+class UnmanagedLXC(LXC):
+    """An LXC that was created without lxc4u metadata"""
+    def destroy(self, force=False):
+        """UnmanagedLXC Destructor. 
+        
+        It requires force to be true in order to work. Otherwise it throws an
+        error.
+        """
+        if force:
+            super(UnmanagedLXC, self).destroy()
+        else:
+            raise UnmanagedLXCError('Destroying an unmanaged LXC might not work. '
+                'To continue please call this method with force=True')
+
+
+class LXCWithOverlays(LXC):
+    """An LXC that has an overlay group"""
+    @classmethod
+    def with_meta(cls, name, meta, service, overlay_group):
+        lxc = cls(name, service, overlay_group)
+        lxc.bind_meta(meta)
+        return lxc 
+
+    def __init__(self, name, service, overlay_group):
+        self._overlay_group = overlay_group
+        super(LXCWithOverlays, self).__init__(name, service)
+
+    def destroy(self):
+        """Unmounts overlay and deletes it's own directory"""
+        self._overlay_group.unmount()
+        shutil.rmtree(self.path())
+
 
 class LXCManager(object):
     @classmethod

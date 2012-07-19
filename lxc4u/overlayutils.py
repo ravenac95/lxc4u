@@ -35,3 +35,10 @@ class OverlayGroup(object):
     def unmount(self):
         for overlay in self.overlays:
             overlay.unmount()
+
+    def metadata(self):
+        """Data for loading later"""
+        mount_points = []
+        for overlay in self.overlays:
+            mount_points.append(overlay.mount_point)
+        return mount_points

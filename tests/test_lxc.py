@@ -2,34 +2,16 @@ from nose.tools import raises
 from mock import Mock, patch, ANY
 from lxc4u.lxc import *
 
+
 @patch('lxc4u.lxc.LXCService')
 def test_create_a_container(mock_service):
-    test1_lxc = LXC.create('test1')
+    test1_lxc = create_lxc('test1')
 
     # Assertions
     message = "test1_lxc isn't an LXC instance"
     assert isinstance(test1_lxc, LXC) == True, message
     mock_service.create.assert_called_with('test1', template='ubuntu')
 
-@patch('lxc4u.lxc.LXCService')
-def test_container_from_name(mock_service):
-    # Setup Return values
-    mock_service.list_names.return_value = ['name']
-
-    # Run Test
-    test1_lxc = LXC.from_name('name')
-    
-    # Assertions
-    message = "test1_lxc isn't an LXC instance"
-    assert isinstance(test1_lxc, LXC) == True, message
-    mock_service.list_names.assert_called_with()
-    
-
-@raises(LXCDoesNotExist)
-@patch('lxc4u.lxc.LXCService')
-def test_container_from_name_does_not_exist(mock_service):
-    mock_service.list_names.return_value = []
-    LXC.from_name('name')
 
 class TestLXC(object):
     def setup(self):
@@ -79,7 +61,8 @@ class TestLXC(object):
         self.lxc.destroy()
         self.mock_service.destroy.assert_called_with('name')
 
-class TestLXCWithOverlay(object):
+
+class TestCreateLXCWithOverlay(object):
     def setup(self):
         self.lxc_service_patch = patch('lxc4u.lxc.LXCService')
         self.mkdir_patch = patch('os.mkdir')
@@ -97,7 +80,7 @@ class TestLXCWithOverlay(object):
         self.overlay_group_patch.stop()
     
     def test_with_simple_overlay(self):
-        test1_overlay_lxc = LXC.create_with_overlays('test1_overlay',
+        test1_overlay_lxc = create_lxc_with_overlays('test1_overlay',
                 base='test1', overlays=['overlay_path'])
 
         # Assertions
@@ -105,11 +88,11 @@ class TestLXCWithOverlay(object):
                 ['overlay_path'])
 
         message = "test1_lxc_overlay isn't an LXC instance"
-        assert isinstance(test1_overlay_lxc, LXC) == True, message
+        assert isinstance(test1_overlay_lxc, LXCWithOverlays) == True, message
 
     def test_with_many_overlays(self):
         """Test with multiple layers of overlay."""
-        test1_overlay_lxc = LXC.create_with_overlays('test1_overlay',
+        test1_overlay_lxc = create_lxc_with_overlays('test1_overlay',
                 base='test1', overlays=['overlay1_path', 'overlay2_path'])
         
         # Assertions
@@ -117,7 +100,25 @@ class TestLXCWithOverlay(object):
                 ['overlay1_path', 'overlay2_path'])
 
         message = "test1_lxc_overlay isn't an LXC instance"
-        assert isinstance(test1_overlay_lxc, LXC) == True, message
+        assert isinstance(test1_overlay_lxc, LXCWithOverlays) == True, message
+
+
+class TestLXCWithOverlay(object):
+    def setup(self):
+        self.mock_overlay_group = Mock()
+        self.mock_service = Mock()
+
+        self.lxc_with_overlay = LXCWithOverlays('name', self.mock_service,
+                self.mock_overlay_group)
+
+    @patch('shutil.rmtree')
+    def test_destroy(self, mock_remove):
+        self.lxc_with_overlay.destroy()
+
+        # Assertions
+        self.mock_overlay_group.unmount.assert_called_with()
+        mock_remove.assert_called_with(self.mock_service.lxc_path.return_value)
+
 
 
 @patch('lxc4u.lxc.LXCService')

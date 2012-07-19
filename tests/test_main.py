@@ -7,19 +7,19 @@ Test the main interface
 import lxc4u
 from mock import patch, ANY
 
-@patch('lxc4u.LXC')
-def test_create(mock_lxc_cls):
-    """Simple test create"""
-    assert lxc4u.create('name') == mock_lxc_cls.create.return_value
-    mock_lxc_cls.create.assert_called_with('name', service=ANY)
+@patch('lxc4u.create_lxc', autospec=True)
+def test_create(mock_create):
+    """Test lxc4u.create"""
+    assert lxc4u.create('name') == mock_create.return_value
+    mock_create.assert_called_with('name', service=ANY)
 
-@patch('lxc4u.LXC')
-def test_create_with_overlays(mock_lxc_cls):
-    """Simple test create"""
-    create_obj = mock_lxc_cls.create_with_overlays.return_value
+@patch('lxc4u.create_lxc_with_overlays', autospec=True)
+def test_create_with_overlays(mock_create_with_overlays):
+    """Test lxc4u.create adding overlays"""
+    create_obj = mock_create_with_overlays.return_value
     assert lxc4u.create('name', base='test1', 
             overlays=['overlay']) == create_obj
-    mock_lxc_cls.create_with_overlays.assert_called_with('name', 'test1', 
+    mock_create_with_overlays.assert_called_with('name', 'test1', 
             ['overlay'], service=ANY)
 
 @patch('lxc4u.LXCManager')
