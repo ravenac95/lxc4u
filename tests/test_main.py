@@ -7,20 +7,23 @@ Test the main interface
 import lxc4u
 from mock import patch, ANY
 
+
 @patch('lxc4u.create_lxc', autospec=True)
 def test_create(mock_create):
     """Test lxc4u.create"""
     assert lxc4u.create('name') == mock_create.return_value
     mock_create.assert_called_with('name', service=ANY)
 
+
 @patch('lxc4u.create_lxc_with_overlays', autospec=True)
 def test_create_with_overlays(mock_create_with_overlays):
     """Test lxc4u.create adding overlays"""
     create_obj = mock_create_with_overlays.return_value
-    assert lxc4u.create('name', base='test1', 
+    assert lxc4u.create('name', base='test1',
             overlays=['overlay']) == create_obj
-    mock_create_with_overlays.assert_called_with('name', 'test1', 
+    mock_create_with_overlays.assert_called_with('name', 'test1',
             ['overlay'], service=ANY)
+
 
 @patch('lxc4u.LXCManager')
 def test_get(mock_manager):
@@ -28,10 +31,12 @@ def test_get(mock_manager):
     assert lxc4u.get('name') == mock_manager.get.return_value
     mock_manager.get.assert_called_with('name')
 
+
 @patch('lxc4u.LXCManager')
 def test_list(mock_manager):
     """List LXC Containers"""
     assert lxc4u.list() == mock_manager.list.return_value
+
 
 @patch('lxc4u.LXCManager')
 def test_start(mock_manager):
@@ -42,6 +47,7 @@ def test_start(mock_manager):
     assert lxc4u.start('name') == mock_lxc
     mock_manager.get.assert_called_with('name')
     mock_lxc.start.assert_called_with()
+
 
 @patch('lxc4u.LXCManager')
 def test_stop(mock_manager):

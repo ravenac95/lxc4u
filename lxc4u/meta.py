@@ -1,6 +1,7 @@
 import json
 from . import constants
 
+
 class LXCMeta(object):
     """A dictionary like object that stores the metadata for an LXC"""
 
@@ -47,14 +48,14 @@ class BoundLXCMeta(object):
 
     def __getitem__(self, key):
         return self._meta[key]
-    
+
     def __setitem__(self, key, value):
         self._meta[key] = value
 
     def save(self):
         meta_file_path = self._lxc.path(constants.LXC_META_FILENAME)
         meta_file = open(meta_file_path, 'w')
-        
+
         json_string = json.dumps(self._meta.as_dict())
 
         meta_file.write(json_string)
