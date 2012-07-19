@@ -46,6 +46,17 @@ eggs
 parts
 dist
 
+# Coverage
+.coverage
+cover
+
+# Rope 
+.ropeproject
+
+#virtstrap (old version)
+quickactivate.sh
+vs.env
+
 #virtstrap
 quickactivate
 .vs.env
