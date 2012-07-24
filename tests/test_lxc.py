@@ -1,5 +1,5 @@
 from nose.tools import raises
-from mock import Mock, patch, ANY, MagicMock
+from mock import Mock, patch, ANY, MagicMock, call
 from lxc4u.lxc import *
 
 
@@ -199,16 +199,39 @@ class TestLXCLoader(object):
         self.loader.load(meta)
 
 
-@patch('lxc4u.lxc.LXCService')
-def test_lxc_manager_list(mock_service):
-    mock_service.list_names.return_value = ['lxc1', 'lxc2']
-    lxc_list = LXCManager.list()
-    for lxc in lxc_list:
-        assert isinstance(lxc, LXC)
-    assert len(lxc_list) == 2
+class TestLXCManager(object):
+    def setup(self):
+        self.mock_service = Mock(name='LXCService')
+        self.mock_loader = Mock(name='LXCLoader')
+        self.manager = LXCManager(self.mock_loader, self.mock_service)
 
+        # Setup Patch Objects
+        self.lxc_meta_patch = patch('lxc4u.lxc.LXCMeta')
 
-@patch('lxc4u.lxc.LXC')
-def test_lxc_manager_get(mock_lxc_cls):
-    assert LXCManager.get('name') == mock_lxc_cls.from_name.return_value
-    mock_lxc_cls.from_name.assert_called_with('name', service=ANY)
+        # Setup Patches
+        self.mock_lxc_meta_cls = self.lxc_meta_patch.start()
+
+    def teardown(self):
+        self.lxc_meta_patch.stop()
+
+    def test_lxc_manager_list(self):
+        self.mock_service.list_names.return_value = ['lxc1', 'lxc2']
+
+        # Run Test
+        lxc_list = self.manager.list()
+
+        # Assertions
+        expected_calls = [
+            call('lxc1', ANY),
+            call('lxc2', ANY),
+        ]
+        self.mock_service.lxc_path.assert_has_calls(expected_calls)
+        self.mock_loader.load.assert_called_with(
+                self.mock_lxc_meta_cls.load_from_file.return_value)
+        for lxc in lxc_list:
+            assert lxc == self.mock_loader.load.return_value
+        assert len(lxc_list) == 2
+
+    def test_lxc_manager_get(self):
+        # FIXME bad test...
+        assert isinstance(self.manager.get('name'), LXC)

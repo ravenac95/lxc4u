@@ -2,6 +2,7 @@ import os
 import shutil
 from .service import LXCService
 from .overlayutils import OverlayGroup
+from . import constants
 from .meta import LXCMeta
 
 
@@ -175,13 +176,24 @@ class LXCLoader(object):
 
 
 class LXCManager(object):
-    @classmethod
-    def list(cls, service=None):
-        """Get's all of the LXC's and creates objects for them"""
-        service = service or LXCService
-        lxc_names = service.list_names()
-        return map(lambda name: LXC(name, service=service), lxc_names)
+    """Manages the currently available LXCs"""
+    def __init__(self, loader, service):
+        self._service = service
+        self._loader = loader
 
-    @classmethod
-    def get(cls, name, service=None):
-        return LXC.from_name(name, service=service)
+    def list(self):
+        """Get's all of the LXC's and creates objects for them"""
+        service = self._service
+
+        lxc_names = service.list_names()
+        lxc_list = []
+        for name in lxc_names:
+            lxc_meta_path = service.lxc_path(name, constants.LXC_META_FILENAME)
+            meta = LXCMeta.load_from_file(lxc_meta_path)
+            lxc = self._loader.load(meta)
+            lxc_list.append(lxc)
+        return lxc_list
+
+    def get(self, name):
+        """Retrieves a single LXC by name"""
+        return LXC(name, service=self._service)

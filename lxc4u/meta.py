@@ -6,9 +6,9 @@ class LXCMeta(object):
     """A dictionary like object that stores the metadata for an LXC"""
 
     @classmethod
-    def load_from_file(cls, filename):
+    def load_from_file(cls, file_path):
         """Load the meta data given a filename"""
-        data = json.loads(filename)
+        data = json.loads(file_path)
         return cls(initial=data)
 
     def __init__(self, initial=None):
