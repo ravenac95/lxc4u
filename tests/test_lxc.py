@@ -157,21 +157,6 @@ class TestLXCWithOverlay(object):
         mock_remove.assert_called_with(self.mock_service.lxc_path.return_value)
 
 
-@patch('lxc4u.lxc.LXCService')
-def test_lxc_manager_list(mock_service):
-    mock_service.list_names.return_value = ['lxc1', 'lxc2']
-    lxc_list = LXCManager.list()
-    for lxc in lxc_list:
-        assert isinstance(lxc, LXC)
-    assert len(lxc_list) == 2
-
-
-@patch('lxc4u.lxc.LXC')
-def test_lxc_manager_get(mock_lxc_cls):
-    assert LXCManager.get('name') == mock_lxc_cls.from_name.return_value
-    mock_lxc_cls.from_name.assert_called_with('name', service=ANY)
-
-
 def test_initialize_lxc_loader():
     LXCLoader(None, None)
 
@@ -212,3 +197,18 @@ class TestLXCLoader(object):
     def test_loader_load_fails(self):
         meta = dict(type='type3', name='name')
         self.loader.load(meta)
+
+
+@patch('lxc4u.lxc.LXCService')
+def test_lxc_manager_list(mock_service):
+    mock_service.list_names.return_value = ['lxc1', 'lxc2']
+    lxc_list = LXCManager.list()
+    for lxc in lxc_list:
+        assert isinstance(lxc, LXC)
+    assert len(lxc_list) == 2
+
+
+@patch('lxc4u.lxc.LXC')
+def test_lxc_manager_get(mock_lxc_cls):
+    assert LXCManager.get('name') == mock_lxc_cls.from_name.return_value
+    mock_lxc_cls.from_name.assert_called_with('name', service=ANY)

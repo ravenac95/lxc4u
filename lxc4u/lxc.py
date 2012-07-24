@@ -160,19 +160,6 @@ class LXCWithOverlays(LXC):
         shutil.rmtree(self.path())
 
 
-class LXCManager(object):
-    @classmethod
-    def list(cls, service=None):
-        """Get's all of the LXC's and creates objects for them"""
-        service = service or LXCService
-        lxc_names = service.list_names()
-        return map(lambda name: LXC(name, service=service), lxc_names)
-
-    @classmethod
-    def get(cls, name, service=None):
-        return LXC.from_name(name, service=service)
-
-
 class LXCLoader(object):
     def __init__(self, types, service):
         self._types = types
@@ -185,3 +172,16 @@ class LXCLoader(object):
         if not lxc_type_cls:
             raise UnknownLXCType('LXC type "%s" is unknown' % lxc_type_name)
         return lxc_type_cls.with_meta(meta['name'], self._service, meta)
+
+
+class LXCManager(object):
+    @classmethod
+    def list(cls, service=None):
+        """Get's all of the LXC's and creates objects for them"""
+        service = service or LXCService
+        lxc_names = service.list_names()
+        return map(lambda name: LXC(name, service=service), lxc_names)
+
+    @classmethod
+    def get(cls, name, service=None):
+        return LXC.from_name(name, service=service)
