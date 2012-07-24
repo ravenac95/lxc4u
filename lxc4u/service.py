@@ -7,8 +7,10 @@ This contains the low level access layer to any of the lxc command line tools.
 import os
 import subwrap
 
+
 def split_info_line(line):
     return map(str.strip, line.split(':'))
+
 
 class LXCService(object):
     """Low level access layer to the lxc tools"""
@@ -27,7 +29,7 @@ class LXCService(object):
         lxc_path = output.splitlines()[0]
         lxc_path = lxc_path.strip()
         return os.path.join(lxc_path, *join_paths)
-    
+
     @classmethod
     def create(cls, name, template=None):
         """Creates an LXC"""
