@@ -216,22 +216,38 @@ class TestLXCManager(object):
 
     def test_lxc_manager_list(self):
         self.mock_service.list_names.return_value = ['lxc1', 'lxc2']
+        mock_get = self.manager.get = Mock()
 
         # Run Test
         lxc_list = self.manager.list()
 
         # Assertions
         expected_calls = [
-            call('lxc1', ANY),
-            call('lxc2', ANY),
+            call('lxc1'),
+            call('lxc2'),
         ]
-        self.mock_service.lxc_path.assert_has_calls(expected_calls)
-        self.mock_loader.load.assert_called_with(
-                self.mock_lxc_meta_cls.load_from_file.return_value)
+        mock_get.assert_has_calls(expected_calls)
+
         for lxc in lxc_list:
-            assert lxc == self.mock_loader.load.return_value
+            assert lxc == mock_get.return_value
         assert len(lxc_list) == 2
 
     def test_lxc_manager_get(self):
         # FIXME bad test...
-        assert isinstance(self.manager.get('name'), LXC)
+        name = 'name'
+
+        lxc = self.manager.get(name)
+
+        # Assert that service.lxc_path was called correctly
+        self.mock_service.lxc_path.assert_called_with(name, ANY)
+        # Grab it's return value
+        mock_meta_path = self.mock_service.lxc_path.return_value
+
+        # Assert that the LXCMeta object was created correctly
+        self.mock_lxc_meta_cls.load_from_file.assert_called_with(
+                mock_meta_path)
+
+        mock_meta = self.mock_lxc_meta_cls.load_from_file.return_value
+        self.mock_loader.load.assert_called_with(mock_meta)
+
+        assert lxc == self.mock_loader.load.return_value

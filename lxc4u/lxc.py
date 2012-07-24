@@ -188,12 +188,14 @@ class LXCManager(object):
         lxc_names = service.list_names()
         lxc_list = []
         for name in lxc_names:
-            lxc_meta_path = service.lxc_path(name, constants.LXC_META_FILENAME)
-            meta = LXCMeta.load_from_file(lxc_meta_path)
-            lxc = self._loader.load(meta)
+            lxc = self.get(name)
             lxc_list.append(lxc)
         return lxc_list
 
     def get(self, name):
         """Retrieves a single LXC by name"""
-        return LXC(name, service=self._service)
+        lxc_meta_path = self._service.lxc_path(name,
+                constants.LXC_META_FILENAME)
+        meta = LXCMeta.load_from_file(lxc_meta_path)
+        lxc = self._loader.load(meta)
+        return lxc
