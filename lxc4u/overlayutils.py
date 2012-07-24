@@ -29,6 +29,11 @@ class OverlayGroup(object):
         overlay_objects.append(overlay_obj)
         return cls(end_dir, start_dir, overlay_objects)
 
+    @classmethod
+    def from_metadata(self, metadata):
+        for raw_overlay in raw_overlays:
+            pass
+
     def __init__(self, end_dir, start_dir, overlays):
         self.end_dir = end_dir
         self.start_dir = start_dir
@@ -43,7 +48,7 @@ class OverlayGroup(object):
         mount_points = []
         for overlay in self.overlays:
             mount_points.append(overlay.mount_point)
-        return mount_points
+        return [self.end_dir, self.start_dir, mount_points]
 
     def __iter__(self):
         return iter(self.overlays)

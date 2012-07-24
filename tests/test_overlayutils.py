@@ -76,5 +76,5 @@ class TestOverlayGroup(object):
     def test_metadata(self):
         metadata = self.group.metadata()
 
-        assert metadata == [self.mock_ov1.mount_point,
-                self.mock_ov2.mount_point]
+        assert metadata == ['/end', '/start', [self.mock_ov1.mount_point,
+                self.mock_ov2.mount_point]]

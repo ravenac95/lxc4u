@@ -8,6 +8,8 @@ automatically if you are not root.
 These tests are meant to be as close to truly functional as possible. Take
 extra caution when running these tests. If this is not a stable release please
 do not run these tests in a production system.
+
+These tests assume that you have an LXC on your system named "base".
 """
 import tempfile
 import shutil
@@ -86,6 +88,50 @@ def test_create_with_overlay():
 
             # Attempt to clean up
             overlay_lxc.destroy()
+
+            # Check that the clean up did it's job
+            assert os.path.exists(container_path) == False
+        finally:
+            # FIXME clean up isn't a for sure thing here :-/
+            if overlay_group:
+                unmount_overlays(overlay_group)
+            else:
+                unmount_mount_point(container_path)
+            if os.path.exists(container_path):
+                if os.path.isdir(container_path):
+                    shutil.rmtree(container_path)
+                else:
+                    os.remove(container_path)
+
+
+@only_as_root
+@attr('large')
+def test_create_and_load():
+    """Create a new LXC with a temp overlay"""
+    random_name = random_string(26, ALPHAS_LOWER)
+    # Create a random directory path for the test container
+    container_path = tempfile.mkdtemp(dir='/var/lib/lxc')
+    # Delete path that was created
+    shutil.rmtree(container_path)
+    # Get random name using temp directory path
+    random_name = os.path.basename(container_path)
+    with temp_directory() as temp_path:
+        overlay_group = None
+        try:
+            # FIXME it assumes you have an LXC named base
+            overlay_lxc = lxc4u.create(random_name, base="base",
+                    overlays=[temp_path])
+
+            overlay_group = overlay_lxc._overlay_group
+
+            # Attempt to load
+            overlay_lxc_from_load = lxc4u.get(random_name)
+
+            # Check they have the same type
+            assert overlay_lxc_from_load.__class__ == overlay_lxc
+
+            # Attempt to clean up with the loaded class
+            overlay_lxc_from_load.destroy()
 
             # Check that the clean up did it's job
             assert os.path.exists(container_path) == False
