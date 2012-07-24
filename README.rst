@@ -1,24 +1,23 @@
-lxc4u - Tools for dealing with LXC in ubuntu
-============================================
+lxc4u - A low level LXC tool for targeted at ubuntu
+===================================================
 
 Warning! This is still a work in progress.
 
 Provides tools for managing LXC in Ubuntu 12.04 and Ubuntu 12.04 Containers.
 Other containers are not supported (yet?)
 
-- Starts ephemeral containers using overlayfs
-- For Ubuntu 12.04 containers, it can specify a static IP address
-- Can handle multiple overlayfs layers to run an ephemeral container
-- Can specify a startup command
+- Creates containers using overlayfs
+- Can handle multiple overlayfs layers
 
-Mostly working examples
------------------------
+Working examples
+----------------
 
 Create a container named ``test1``::
     
     import lxc4u
 
     test1_lxc = lxc4u.create('test1')
+    # Wait a long time...
 
     # Start the container
     test1_lxc.start()
@@ -32,6 +31,8 @@ Create a container that overlays ``test1``::
 
     # Start the container
     test1_overlay_lxc.start()
+
+    test1_overlay_lxc.destroy()
 
 Create a container with multiple overlays of ``test1``. The right most overlay
 is the upper most overlay directory::
