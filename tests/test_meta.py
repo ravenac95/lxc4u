@@ -12,11 +12,40 @@ def test_initialize_lxc_meta():
     assert meta2['hello'] == 123
 
 
-class TestLXC(object):
+@patch('json.loads')
+@patch('os.path.exists')
+def test_meta_load_from_file(mock_exists, mock_loads):
+    # Setup Mocks
+    mock_exists.return_value = True
+    mock_loads.return_value = {}
+    fake_path = 'path'
+
+    # Run Test
+    meta = LXCMeta.load_from_file(fake_path)
+
+    # Assertions
+    assert isinstance(meta, LXCMeta) == True
+
+
+@patch('json.loads')
+@patch('os.path.exists')
+def test_meta_load_from_file(mock_exists, mock_loads):
+    mock_exists.return_value = False
+    fake_path = 'path'
+
+    # Run Test
+    meta = LXCMeta.load_from_file(fake_path)
+
+    assert mock_loads.called == False, "Mock json was called for some reason"
+
+
+class TestLXCMeta(object):
     def setup(self):
         metadata = dict(a=1, b=2, c=3, d='delta')
         self.metadata = metadata
         self.meta = LXCMeta(initial=metadata)
+
+
 
     def test_as_dict(self):
         assert self.meta.as_dict() == self.metadata

@@ -1,3 +1,4 @@
+import os
 import json
 from . import constants
 
@@ -7,8 +8,10 @@ class LXCMeta(object):
 
     @classmethod
     def load_from_file(cls, file_path):
-        """Load the meta data given a filename"""
-        data = json.loads(file_path)
+        """Load the meta data given a file_path or empty meta data"""
+        data = None
+        if os.path.exists(file_path):
+            data = json.loads(file_path)
         return cls(initial=data)
 
     def __init__(self, initial=None):
@@ -19,6 +22,12 @@ class LXCMeta(object):
         return self._metadata[key]
 
     def __setitem__(self, key, value):
+        self._metadata[key] = value
+
+    def get(self, key):
+        return self._metadata[key]
+
+    def set(self, key, value):
         self._metadata[key] = value
 
     def as_dict(self):
@@ -62,4 +71,5 @@ class BoundLXCMeta(object):
         meta_file.close()
 
     def as_dict(self):
+        return self._meta.as_dict()
         return self._meta.as_dict()

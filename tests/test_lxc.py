@@ -1,5 +1,5 @@
 from nose.tools import raises
-from mock import Mock, patch, ANY, MagicMock, call
+from mock import Mock, patch, ANY, call
 from lxc4u.lxc import *
 
 
@@ -170,33 +170,45 @@ class TestLXCLoader(object):
     def setup(self):
         self.mock_lxc_type1 = Mock()
         self.mock_lxc_type2 = Mock()
+        self.mock_lxc_type_default = Mock()
         self.mock_service = Mock()
         self.loader = LXCLoader({
             'type1': self.mock_lxc_type1,
             'type2': self.mock_lxc_type2,
+            '__default__': self.mock_lxc_type_default,
         }, self.mock_service)
 
     def test_loader_load(self):
         # Setup Mocks
-        meta1 = dict(type='type1', name='name1')
-        meta2 = dict(type='type2', name='name2')
+        name1 = 'name1'
+        name2 = 'name2'
+        meta1 = dict(type='type1')
+        meta2 = dict(type='type2')
 
         # Run Test1
-        lxc1 = self.loader.load(meta1)
+        lxc1 = self.loader.load(name1, meta1)
         # Run Test2
-        lxc2 = self.loader.load(meta2)
+        lxc2 = self.loader.load(name2, meta2)
 
         # Assertions
-        self.mock_lxc_type1.with_meta.assert_called_with('name1', ANY, meta1)
+        self.mock_lxc_type1.with_meta.assert_called_with(name1, ANY, meta1)
         assert lxc1 == self.mock_lxc_type1.with_meta.return_value
 
-        self.mock_lxc_type2.with_meta.assert_called_with('name2', ANY, meta2)
+        self.mock_lxc_type2.with_meta.assert_called_with(name2, ANY, meta2)
         assert lxc2 == self.mock_lxc_type2.with_meta.return_value
 
     @raises(UnknownLXCType)
     def test_loader_load_fails(self):
-        meta = dict(type='type3', name='name')
-        self.loader.load(meta)
+        name = 'name'
+        meta = dict(type='type3')
+        self.loader.load(name, meta)
+
+    def test_loader_load_default(self):
+        name = 'name'
+        meta = dict()
+        lxc = self.loader.load(name, meta)
+
+        assert lxc == self.mock_lxc_type_default.with_meta.return_value
 
 
 class TestLXCManager(object):
@@ -233,7 +245,6 @@ class TestLXCManager(object):
         assert len(lxc_list) == 2
 
     def test_lxc_manager_get(self):
-        # FIXME bad test...
         name = 'name'
 
         lxc = self.manager.get(name)

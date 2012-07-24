@@ -166,13 +166,13 @@ class LXCLoader(object):
         self._types = types
         self._service = service
 
-    def load(self, meta):
-        lxc_type_name = meta['type']
+    def load(self, name, meta):
+        lxc_type_name = meta.get('type', constants.DEFAULT_LXC_TYPE_KEY)
 
         lxc_type_cls = self._types.get(lxc_type_name)
         if not lxc_type_cls:
             raise UnknownLXCType('LXC type "%s" is unknown' % lxc_type_name)
-        return lxc_type_cls.with_meta(meta['name'], self._service, meta)
+        return lxc_type_cls.with_meta(name, self._service, meta)
 
 
 class LXCManager(object):
