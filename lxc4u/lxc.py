@@ -167,3 +167,7 @@ class LXCManager(object):
     @classmethod
     def get(cls, name, service=None):
         return LXC.from_name(name, service=service)
+
+
+class LXCLoader(object):
+    pass

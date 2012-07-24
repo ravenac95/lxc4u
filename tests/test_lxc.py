@@ -1,5 +1,5 @@
 from nose.tools import raises
-from mock import Mock, patch, ANY
+from mock import Mock, patch, ANY, MagicMock
 from lxc4u.lxc import *
 
 
@@ -170,3 +170,29 @@ def test_lxc_manager_list(mock_service):
 def test_lxc_manager_get(mock_lxc_cls):
     assert LXCManager.get('name') == mock_lxc_cls.from_name.return_value
     mock_lxc_cls.from_name.assert_called_with('name', service=ANY)
+
+
+def test_initialize_lxc_loader():
+    LXCLoader()
+
+
+# Utility function
+def side_effect_map(**map_dict):
+    return lambda a: map_dict[a]
+
+
+class TestLXCLoader(object):
+    def setup(self):
+        self.mock_lxc_type1 = Mock()
+        self.mock_lxc_type2 = Mock()
+        self.loader = LXCLoader({
+            'type1': self.mock_lxc_type1,
+            'type2': self.mock_lxc_type2,
+        })
+
+    def test_loader_load(self):
+        meta = MagicMock()
+        meta.__getitem__.return_value = side_effect_map(type='type1', name='name')
+        self.loader.load(meta)
+
+        self.mock_lxc_type1.with_meta.assert_called_with('name', ANY, meta)
