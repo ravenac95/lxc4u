@@ -4,7 +4,10 @@ from .service import LXCService
 
 
 def default_setup():
-    """The default setup for lxc4u"""
+    """The default API setup for lxc4u
+
+    This is the API that you access globally from lxc4u.
+    """
     service = LXCService
     lxc_types = dict(LXC=LXC, LXCWithOverlays=LXCWithOverlays,
             __default__=UnmanagedLXC)
