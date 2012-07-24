@@ -23,6 +23,10 @@ class LXCHasNoMeta(Exception):
         super(LXCHasNoMeta, self).__init__(message)
 
 
+class UnknownLXCType(Exception):
+    pass
+
+
 def create_lxc(name, template='ubuntu', service=None):
     """Factory method for the generic LXC"""
     service = service or LXCService
@@ -170,4 +174,14 @@ class LXCManager(object):
 
 
 class LXCLoader(object):
-    pass
+    def __init__(self, types, service):
+        self._types = types
+        self._service = service
+
+    def load(self, meta):
+        lxc_type_name = meta['type']
+
+        lxc_type_cls = self._types.get(lxc_type_name)
+        if not lxc_type_cls:
+            raise UnknownLXCType('LXC type "%s" is unknown' % lxc_type_name)
+        return lxc_type_cls.with_meta(meta['name'], self._service, meta)

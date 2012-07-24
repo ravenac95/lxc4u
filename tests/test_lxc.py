@@ -173,7 +173,7 @@ def test_lxc_manager_get(mock_lxc_cls):
 
 
 def test_initialize_lxc_loader():
-    LXCLoader()
+    LXCLoader(None, None)
 
 
 # Utility function
@@ -185,14 +185,30 @@ class TestLXCLoader(object):
     def setup(self):
         self.mock_lxc_type1 = Mock()
         self.mock_lxc_type2 = Mock()
+        self.mock_service = Mock()
         self.loader = LXCLoader({
             'type1': self.mock_lxc_type1,
             'type2': self.mock_lxc_type2,
-        })
+        }, self.mock_service)
 
     def test_loader_load(self):
-        meta = MagicMock()
-        meta.__getitem__.return_value = side_effect_map(type='type1', name='name')
-        self.loader.load(meta)
+        # Setup Mocks
+        meta1 = dict(type='type1', name='name1')
+        meta2 = dict(type='type2', name='name2')
 
-        self.mock_lxc_type1.with_meta.assert_called_with('name', ANY, meta)
+        # Run Test1
+        lxc1 = self.loader.load(meta1)
+        # Run Test2
+        lxc2 = self.loader.load(meta2)
+
+        # Assertions
+        self.mock_lxc_type1.with_meta.assert_called_with('name1', ANY, meta1)
+        assert lxc1 == self.mock_lxc_type1.with_meta.return_value
+
+        self.mock_lxc_type2.with_meta.assert_called_with('name2', ANY, meta2)
+        assert lxc2 == self.mock_lxc_type2.with_meta.return_value
+
+    @raises(UnknownLXCType)
+    def test_loader_load_fails(self):
+        meta = dict(type='type3', name='name')
+        self.loader.load(meta)
