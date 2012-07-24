@@ -33,7 +33,7 @@ def create_lxc(name, template='ubuntu', service=None):
     service = service or LXCService
     service.create(name, template=template)
     meta = LXCMeta(initial=dict(type='LXC'))
-    lxc = LXC.with_meta(name, service, meta)
+    lxc = LXC.with_meta(name, service, meta, save=True)
     return lxc
 
 
@@ -197,5 +197,5 @@ class LXCManager(object):
         lxc_meta_path = self._service.lxc_path(name,
                 constants.LXC_META_FILENAME)
         meta = LXCMeta.load_from_file(lxc_meta_path)
-        lxc = self._loader.load(meta)
+        lxc = self._loader.load(name, meta)
         return lxc

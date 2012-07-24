@@ -11,7 +11,8 @@ class LXCMeta(object):
         """Load the meta data given a file_path or empty meta data"""
         data = None
         if os.path.exists(file_path):
-            data = json.loads(file_path)
+            metadata_file = open(file_path)
+            data = json.loads(metadata_file.read())
         return cls(initial=data)
 
     def __init__(self, initial=None):
@@ -24,8 +25,8 @@ class LXCMeta(object):
     def __setitem__(self, key, value):
         self._metadata[key] = value
 
-    def get(self, key):
-        return self._metadata[key]
+    def get(self, key, default=None):
+        return self._metadata.get(key, default)
 
     def set(self, key, value):
         self._metadata[key] = value

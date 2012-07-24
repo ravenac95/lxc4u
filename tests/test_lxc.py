@@ -3,8 +3,9 @@ from mock import Mock, patch, ANY, call
 from lxc4u.lxc import *
 
 
+@patch('__builtin__.open')  # Prevent anything from writing to disk
 @patch('lxc4u.lxc.LXCService')
-def test_create_a_container(mock_service):
+def test_create_a_container(mock_service, mock_open):
     test1_lxc = create_lxc('test1')
 
     # Assertions
@@ -259,6 +260,6 @@ class TestLXCManager(object):
                 mock_meta_path)
 
         mock_meta = self.mock_lxc_meta_cls.load_from_file.return_value
-        self.mock_loader.load.assert_called_with(mock_meta)
+        self.mock_loader.load.assert_called_with(name, mock_meta)
 
         assert lxc == self.mock_loader.load.return_value

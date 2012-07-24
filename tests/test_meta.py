@@ -12,9 +12,10 @@ def test_initialize_lxc_meta():
     assert meta2['hello'] == 123
 
 
+@patch('__builtin__.open')
 @patch('json.loads')
 @patch('os.path.exists')
-def test_meta_load_from_file(mock_exists, mock_loads):
+def test_meta_load_from_file(mock_exists, mock_loads, mock_open):
     # Setup Mocks
     mock_exists.return_value = True
     mock_loads.return_value = {}
@@ -27,9 +28,10 @@ def test_meta_load_from_file(mock_exists, mock_loads):
     assert isinstance(meta, LXCMeta) == True
 
 
+@patch('__builtin__.open')
 @patch('json.loads')
 @patch('os.path.exists')
-def test_meta_load_from_file(mock_exists, mock_loads):
+def test_meta_load_from_file_with_no_file(mock_exists, mock_loads, mock_open):
     mock_exists.return_value = False
     fake_path = 'path'
 
