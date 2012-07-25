@@ -1,5 +1,5 @@
-lxc4u - A low level LXC tool for targeted at ubuntu
-===================================================
+lxc4u - A low level LXC tool targeted at Ubuntu
+===============================================
 
 Warning! This is still a work in progress.
 
