@@ -35,6 +35,17 @@ def test_create_lxc_with_meta_and_save():
     assert lxc.meta == mock_meta.bind_and_save.return_value
 
 
+def test_create_lxc_from_meta():
+    mock_service = Mock()
+    mock_meta = Mock()
+    name = 'name'
+
+    lxc = LXC.from_meta(name, mock_service, mock_meta)
+    assert lxc.name == name
+    assert lxc._service == mock_service
+    assert lxc.meta == mock_meta.bind.return_value
+
+
 @raises(LXCHasNoMeta)
 def test_lxc_without_meta():
     lxc = LXC('name', None)
@@ -140,6 +151,24 @@ class TestCreateLXCWithOverlay(object):
         message = "test1_lxc_overlay isn't an LXC instance"
         assert isinstance(test1_overlay_lxc, LXCWithOverlays) == True, message
 
+    def test_from_meta(self):
+        # Setup
+        mock_meta = Mock()
+        mock_service = Mock()
+        mock_overlay_meta = mock_meta.get.return_value
+        name = "name"
+
+        # Run Test
+        lxc = LXCWithOverlays.from_meta(name, mock_service, mock_meta)
+
+        # Assertions
+        self.mock_overlay_group_cls.from_meta.assert_called_with(
+                mock_overlay_meta)
+        mock_overlay_group = self.mock_overlay_group_cls.from_meta.return_value
+        assert lxc._overlay_group == mock_overlay_group
+        assert lxc.name == name
+        assert lxc._service == mock_service
+
 
 class TestLXCWithOverlay(object):
     def setup(self):
@@ -192,11 +221,11 @@ class TestLXCLoader(object):
         lxc2 = self.loader.load(name2, meta2)
 
         # Assertions
-        self.mock_lxc_type1.with_meta.assert_called_with(name1, ANY, meta1)
-        assert lxc1 == self.mock_lxc_type1.with_meta.return_value
+        self.mock_lxc_type1.from_meta.assert_called_with(name1, ANY, meta1)
+        assert lxc1 == self.mock_lxc_type1.from_meta.return_value
 
-        self.mock_lxc_type2.with_meta.assert_called_with(name2, ANY, meta2)
-        assert lxc2 == self.mock_lxc_type2.with_meta.return_value
+        self.mock_lxc_type2.from_meta.assert_called_with(name2, ANY, meta2)
+        assert lxc2 == self.mock_lxc_type2.from_meta.return_value
 
     @raises(UnknownLXCType)
     def test_loader_load_fails(self):
@@ -209,7 +238,7 @@ class TestLXCLoader(object):
         meta = dict()
         lxc = self.loader.load(name, meta)
 
-        assert lxc == self.mock_lxc_type_default.with_meta.return_value
+        assert lxc == self.mock_lxc_type_default.from_meta.return_value
 
 
 class TestLXCManager(object):

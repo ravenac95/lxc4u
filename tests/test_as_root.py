@@ -128,7 +128,7 @@ def test_create_and_load():
             overlay_lxc_from_load = lxc4u.get(random_name)
 
             # Check they have the same type
-            assert overlay_lxc_from_load.__class__ == overlay_lxc
+            assert overlay_lxc_from_load.__class__ == overlay_lxc.__class__
 
             # Attempt to clean up with the loaded class
             overlay_lxc_from_load.destroy()

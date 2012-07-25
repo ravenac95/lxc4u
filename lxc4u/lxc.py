@@ -45,6 +45,10 @@ class LXC(object):
         lxc.bind_meta(meta, save=save)
         return lxc
 
+    @classmethod
+    def from_meta(cls, name, service, meta):
+        return cls.with_meta(name, service, meta)
+
     def __init__(self, name, service):
         self.name = name
         self._service = service
@@ -117,9 +121,9 @@ def create_lxc_with_overlays(name, base, overlays, overlay_temp_path=None,
         os.mkdir(new_path)
 
     overlay_group = OverlayGroup.create(new_path, base_path, overlays)
-    initial_metadata = dict(type='LXCWithOverlays',
-            overlay_group=overlay_group.metadata())
-    meta = LXCMeta(initial=initial_metadata)
+    initial_meta = dict(type='LXCWithOverlays',
+            overlay_group=overlay_group.meta())
+    meta = LXCMeta(initial=initial_meta)
     return LXCWithOverlays.with_meta(name, service, meta, overlay_group,
             save=True)
 
@@ -151,6 +155,12 @@ class LXCWithOverlays(LXC):
         lxc.bind_meta(meta, save=save)
         return lxc
 
+    @classmethod
+    def from_meta(cls, name, service, meta):
+        overlay_group_meta = meta.get('overlay_group')
+        overlay_group = OverlayGroup.from_meta(overlay_group_meta)
+        return cls.with_meta(name, service, meta, overlay_group)
+
     def __init__(self, name, service, overlay_group):
         self._overlay_group = overlay_group
         super(LXCWithOverlays, self).__init__(name, service)
@@ -172,7 +182,7 @@ class LXCLoader(object):
         lxc_type_cls = self._types.get(lxc_type_name)
         if not lxc_type_cls:
             raise UnknownLXCType('LXC type "%s" is unknown' % lxc_type_name)
-        return lxc_type_cls.with_meta(name, self._service, meta)
+        return lxc_type_cls.from_meta(name, self._service, meta)
 
 
 class LXCManager(object):
