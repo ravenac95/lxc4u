@@ -30,9 +30,12 @@ class OverlayGroup(object):
         return cls(end_dir, start_dir, overlay_objects)
 
     @classmethod
-    def from_metadata(self, metadata):
-        for raw_overlay in raw_overlays:
-            pass
+    def from_meta(cls, meta):
+        end_dir = meta[0]
+        start_dir = meta[1]
+        overlay_mount_points = meta[2]
+        overlay_objects = map(lambda a: overlay4u.get(a), overlay_mount_points)
+        return cls(end_dir, start_dir, overlay_objects)
 
     def __init__(self, end_dir, start_dir, overlays):
         self.end_dir = end_dir
@@ -43,7 +46,7 @@ class OverlayGroup(object):
         for overlay in self.overlays:
             overlay.unmount()
 
-    def metadata(self):
+    def meta(self):
         """Data for loading later"""
         mount_points = []
         for overlay in self.overlays:

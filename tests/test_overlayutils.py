@@ -57,6 +57,27 @@ class TestCreatingOverlayGroup(object):
         OverlayGroup.create('/point', '/low_dir', [])
 
 
+@patch('overlay4u.get')
+def test_overlay_group_from_meta(mock_overlay_get):
+    # Setup
+    fake_overlays = ['/over1', '/over2']
+    fake_meta = ['/end', '/start', fake_overlays]
+
+    # Run Test
+    overlay_group = OverlayGroup.from_meta(fake_meta)
+
+    # Assertions
+    expected_calls = [
+        call('/over1'),
+        call('/over2'),
+    ]
+    mock_overlay_get.assert_has_calls(expected_calls)
+    assert overlay_group.end_dir == '/end'
+    assert overlay_group.start_dir == '/start'
+    for overlay in overlay_group.overlays:
+        assert overlay == mock_overlay_get.return_value
+
+
 class TestOverlayGroup(object):
     def setup(self):
         self.mock_ov1 = Mock(name='overlay1')
@@ -73,8 +94,8 @@ class TestOverlayGroup(object):
         self.mock_ov1.unmount.assert_called_with()
         self.mock_ov2.unmount.assert_called_with()
 
-    def test_metadata(self):
-        metadata = self.group.metadata()
+    def test_meta(self):
+        meta = self.group.meta()
 
-        assert metadata == ['/end', '/start', [self.mock_ov1.mount_point,
+        assert meta == ['/end', '/start', [self.mock_ov1.mount_point,
                 self.mock_ov2.mount_point]]
