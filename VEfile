@@ -1,5 +1,6 @@
 requirements:
   - overlay4u
+  - subwrap
 
 ---
 profile: development
