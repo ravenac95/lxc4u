@@ -25,11 +25,15 @@ class OverlayGroup(object):
             # The new lower directory should be the temporary
             # directory
             current_upper = temp_mount_point
+
         # Get the final overlay location
         overlay = start_dir
+
         # Do the final mount point on the lxc_path using the name provided
         overlay_obj = overlay4u.mount(end_dir, overlay, current_upper)
+        # Add that to the list of overlay objects
         overlay_objects.append(overlay_obj)
+        # All done
         return cls(end_dir, start_dir, overlay_objects)
 
     @classmethod
