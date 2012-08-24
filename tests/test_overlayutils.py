@@ -82,20 +82,31 @@ class TestOverlayGroup(object):
     def setup(self):
         self.mock_ov1 = Mock(name='overlay1')
         self.mock_ov2 = Mock(name='overlay2')
+        self.mock_ov3 = Mock(name='overlay3')
 
         self.group = OverlayGroup('/end', '/start', [
             self.mock_ov1,
-            self.mock_ov2
+            self.mock_ov2,
+            self.mock_ov3,
         ])
-
-    def test_unmount(self):
-        self.group.unmount()
-
-        self.mock_ov1.unmount.assert_called_with()
-        self.mock_ov2.unmount.assert_called_with()
 
     def test_meta(self):
         meta = self.group.meta()
 
         assert meta == ['/end', '/start', [self.mock_ov1.mount_point,
-                self.mock_ov2.mount_point]]
+                self.mock_ov2.mount_point, self.mock_ov3.mount_point]]
+
+    @patch('shutil.rmtree')
+    def test_destroy(self, mock_rmtree):
+        self.group.destroy()
+
+        calls = [
+            call(self.mock_ov1.mount_point),
+            call(self.mock_ov2.mount_point),
+            call(self.mock_ov3.mount_point),
+        ]
+        mock_rmtree.assert_has_calls(calls)
+
+        self.mock_ov1.unmount.assert_called_with()
+        self.mock_ov2.unmount.assert_called_with()
+        self.mock_ov3.unmount.assert_called_with()

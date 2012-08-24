@@ -183,8 +183,7 @@ class TestLXCWithOverlay(object):
         self.lxc_with_overlay.destroy()
 
         # Assertions
-        self.mock_overlay_group.unmount.assert_called_with()
-        mock_remove.assert_called_with(self.mock_service.lxc_path.return_value)
+        self.mock_overlay_group.destroy.assert_called_with()
 
 
 def test_initialize_lxc_loader():

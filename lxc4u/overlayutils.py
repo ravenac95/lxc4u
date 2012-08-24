@@ -1,5 +1,6 @@
 import tempfile
 import overlay4u
+import shutil
 
 
 class OverlayGroup(object):
@@ -49,9 +50,14 @@ class OverlayGroup(object):
         self.start_dir = start_dir
         self.overlays = overlays
 
-    def unmount(self):
+    def destroy(self):
+        # Remove any temporary directories
         for overlay in self.overlays:
+            # Unmount overlay
             overlay.unmount()
+
+            # Delete overlay
+            shutil.rmtree(overlay.mount_point)
 
     def meta(self):
         """Data for loading later"""

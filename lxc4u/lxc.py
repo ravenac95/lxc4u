@@ -1,5 +1,4 @@
 import os
-import shutil
 from .service import LXCService
 from .overlayutils import OverlayGroup
 from . import constants
@@ -167,8 +166,7 @@ class LXCWithOverlays(LXC):
 
     def destroy(self):
         """Unmounts overlay and deletes it's own directory"""
-        self._overlay_group.unmount()
-        shutil.rmtree(self.path())
+        self._overlay_group.destroy()
 
 
 class LXCLoader(object):
