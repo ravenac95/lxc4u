@@ -34,12 +34,12 @@ class TestCreatingOverlayGroup(object):
         assert len(overlay_group) == 1
 
     def test_create_group_with_multiple_overlays(self):
-        overlay_group = OverlayGroup.create('/point', '/low_dir',
+        overlay_group = OverlayGroup.create('/point', '/base_dir',
                 ['overlay1_path', 'overlay2_path'])
 
         calls = [
-            call('sometemp_location', '/low_dir', 'overlay1_path'),
-            call('/point', 'sometemp_location', 'overlay2_path'),
+            call('sometemp_location', 'overlay1_path', 'overlay2_path'),
+            call('/point', '/base_dir', 'sometemp_location'),
         ]
         self.mock_mount.assert_has_calls(calls)
         # Assert that the overlays are tracked correctly

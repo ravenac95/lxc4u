@@ -8,24 +8,27 @@ class OverlayGroup(object):
         if not overlays:
             raise TypeError('overlays may not be an empty list')
         overlay_objects = []
-        # Prime the loop
-        current_lower = start_dir
-        # Loop through all but the final overlay
-        for overlay in overlays[:-1]:
+
+        # Prime the loop with the last overlay
+        current_upper = overlays[-1]
+
+        # Loop through all the overlays in reverse (except the last overlay)
+        reversed_overlays = reversed(overlays[:-1])
+        for overlay in reversed_overlays:
             # Create a temporary directory to handle the mount points for any
             # intermediate overlays
             temp_mount_point = tempfile.mkdtemp(dir=overlay_temp_path)
             # Mount that overlay
             overlay_obj = overlay4u.mount(temp_mount_point,
-                    current_lower, overlay)
+                    overlay, current_upper)
             overlay_objects.append(overlay_obj)
             # The new lower directory should be the temporary
             # directory
-            current_lower = temp_mount_point
+            current_upper = temp_mount_point
         # Get the final overlay location
-        overlay = overlays[-1]
+        overlay = start_dir
         # Do the final mount point on the lxc_path using the name provided
-        overlay_obj = overlay4u.mount(end_dir, current_lower, overlay)
+        overlay_obj = overlay4u.mount(end_dir, overlay, current_upper)
         overlay_objects.append(overlay_obj)
         return cls(end_dir, start_dir, overlay_objects)
 

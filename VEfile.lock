@@ -1,5 +1,6 @@
 overlay4u (overlay4u==0.0.4)
   subwrap (subwrap==0.0.1)
+subwrap (subwrap==0.0.1)
 testkit (testkit==0.1.1)
   fudge (fudge==1.0.3)
 ipython (ipython==0.12.1)
