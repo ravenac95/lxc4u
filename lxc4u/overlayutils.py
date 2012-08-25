@@ -66,8 +66,12 @@ class OverlayGroup(object):
             mount_points.append(overlay.mount_point)
         return [self.end_dir, self.start_dir, mount_points]
 
+    def top(self):
+        """Returns top most overlay"""
+        return self.overlays[-1]
+
     def __iter__(self):
-        return iter(self.overlays)
+        return reversed(self.overlays)
 
     def __len__(self):
         return len(self.overlays)

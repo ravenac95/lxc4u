@@ -185,6 +185,11 @@ class TestLXCWithOverlay(object):
         # Assertions
         self.mock_overlay_group.destroy.assert_called_with()
 
+    def test_top_overlay(self):
+        top_overlay = self.lxc_with_overlay.top_overlay()
+
+        assert top_overlay == self.mock_overlay_group.top.return_value
+
 
 def test_initialize_lxc_loader():
     LXCLoader(None, None)

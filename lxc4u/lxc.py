@@ -168,6 +168,10 @@ class LXCWithOverlays(LXC):
         """Unmounts overlay and deletes it's own directory"""
         self._overlay_group.destroy()
 
+    def top_overlay(self):
+        """Returns top overlay from the overlay group"""
+        return self._overlay_group.top()
+
 
 class LXCLoader(object):
     def __init__(self, types, service):

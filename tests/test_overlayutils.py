@@ -96,6 +96,11 @@ class TestOverlayGroup(object):
         assert meta == ['/end', '/start', [self.mock_ov1.mount_point,
                 self.mock_ov2.mount_point, self.mock_ov3.mount_point]]
 
+    def test_top(self):
+        top = self.group.top()
+
+        assert top == self.mock_ov3
+
     @patch('shutil.rmtree')
     def test_destroy(self, mock_rmtree):
         self.group.destroy()
